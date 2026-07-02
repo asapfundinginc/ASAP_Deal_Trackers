@@ -146,8 +146,8 @@ function matchLenders(d, sr) {
     var reasons = [], fails = [];
 
     // product fit (any acceptable flag = 'Y')
-    var prod = sr.lenderFlags.some(function (f) { return String(L[f]).toUpperCase() === 'Y'; });
-    var coming = sr.lenderFlags.some(function (f) { return /coming/i.test(String(L[f])); });
+    var prod   = sr.lenderFlags.some(function (f) { return L.Product === f; });
+    var coming = false; // no longer used in new schema
     if (!prod) { if (coming) fails.push('product "coming soon"'); else fails.push('does not offer this product'); }
     else reasons.push(sr.cat + ' lender');
 
