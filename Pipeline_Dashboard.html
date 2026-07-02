@@ -1,0 +1,2827 @@
+<!-- Create an HTML file named EXACTLY: Pipeline_Dashboard  -->
+<base target="_top">
+<style>
+  :root{
+    --brand:#1c75bc; --teal:#1ba3c9; --navy:#0e3f63;
+    --ink:#0e1c2b; --muted:#64768a; --line:#e4eaf0; --bg:#f4f8fb; --card:#ffffff;
+    --fit:#1e9e6a; --fitbg:#e7f6ee; --need:#c07d16; --needbg:#fdf3e2; --chip:#eef4fa; --fail:#c0392b; --failbg:#fdecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px}
+  header{background:linear-gradient(120deg,var(--navy),var(--brand));color:#fff;padding:16px 0}
+  header h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
+  header .sub{opacity:.85;font-size:12px;margin-top:2px}
+  .topnav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .appnav{display:flex;gap:6px;align-items:center}
+  .appnav .navt{display:inline-block;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;text-decoration:none;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);white-space:nowrap}
+  .appnav a.navt:hover{background:rgba(255,255,255,.28)}
+  .appnav .navt.active{background:#fff;color:var(--brand);border-color:#fff}
+  .appnav .navt.soon{opacity:.5;cursor:default}
+  .bar{max-width:1840px;margin:0 auto;padding:0 16px}
+  .filters{padding:12px 0;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .filters .bar{display:flex;gap:8px;flex-wrap:wrap}
+  .searchbar{padding-top:10px}
+  #search{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;background:#fff;color:var(--ink)}
+  .fbar{padding-top:8px;align-items:center}
+  .flbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-right:2px}
+  .chiprow{display:inline-flex;gap:6px;flex-wrap:wrap}
+  .fbar2{padding-top:10px;align-items:center}
+  .ddrow{display:flex;flex:1;gap:12px;flex-wrap:wrap}
+  .ddrow .dd{flex:1 1 0}
+  .ddrow .ddbtn{width:100%;box-sizing:border-box;justify-content:space-between;white-space:nowrap}
+  .ddlbl{display:inline-flex;align-items:center;gap:6px;min-width:0}
+  .topbtns{margin-left:auto;display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .dd{position:relative}
+  .ddbtn{border:1px solid #d7e0ea;background:#fff;color:#3a4a59;border-radius:9px;padding:8px 12px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+  .dd.open .ddbtn{border-color:var(--brand);color:var(--brand);box-shadow:0 0 0 2px rgba(28,117,188,.13)}
+  .ddbtn .cv{color:#9aa7b4;font-size:11px}
+  .ddbtn .cnt{display:none;background:var(--brand);color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:0 7px}
+  .ddbtn .cnt.show{display:inline}
+  .ddpanel{display:none;position:absolute;top:calc(100% + 7px);left:0;z-index:40;background:#fff;border:1px solid #e0e7ef;border-radius:11px;box-shadow:0 14px 38px rgba(16,40,70,.20);padding:8px;min-width:240px;max-height:340px;overflow:auto}
+  .dd.open .ddpanel{display:block}
+  .opt{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;font-size:13.5px;color:var(--ink);font-weight:500;cursor:pointer;-webkit-user-select:none;user-select:none}
+  .opt:hover{background:var(--bg)}
+  .opt.sa{border-bottom:1px solid var(--line);border-radius:0;margin-bottom:4px;padding-bottom:10px}
+  .box{width:18px;height:18px;border:1.6px solid #c3cdd8;border-radius:4px;flex:none;position:relative}
+  .box.on{background:var(--fit);border-color:var(--fit)}
+  .box.on::after{content:"\2713";color:#fff;font-size:12px;font-weight:800;position:absolute;left:2.5px;top:-1.5px}
+  .lnk{background:none;border:none;color:var(--brand);font-size:12px;cursor:pointer;text-decoration:underline;margin-left:auto}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;
+        padding:6px 14px;font-size:13px;cursor:pointer;font-weight:600}
+  .chip.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .wrap{max-width:1840px;margin:0 auto;padding:14px 16px 60px}
+  .meta{color:var(--ink);font-size:14px;font-weight:600;margin:2px 4px 14px}
+  /* board */
+  .board{display:flex;gap:14px;align-items:flex-start}
+  .col{flex:1;min-width:0;background:#eaf1f8;border-radius:14px;padding:10px}
+  .col-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;
+            text-transform:uppercase;letter-spacing:.4px;color:var(--navy);padding:4px 6px 10px}
+  .col-head .cc{background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--muted);font-size:11px}
+  @media(max-width:1000px){ .board{flex-direction:column} .col{width:100%} }
+  @media(min-width:1001px){ .board.board-single .col{flex:0 0 calc(33.333% - 10px)} }
+  .card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand);
+        border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,40,70,.04)}
+  .card.fit{border-left-color:var(--fit)} .card.need{border-left-color:var(--need)} .card.spec{border-left-color:var(--fail)}
+  .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .badge{font-size:11px;font-weight:700;border-radius:6px;padding:3px 8px;text-transform:uppercase;letter-spacing:.3px}
+  .b-fit{background:var(--fitbg);color:var(--fit)} .b-need{background:var(--needbg);color:var(--need)}
+  .b-star{background:#eaf1fb;color:var(--brand)} .b-spec{background:var(--failbg);color:var(--fail)} .b-chase{background:#eef4fa;color:var(--navy)} .b-almost{background:var(--fitbg);color:var(--fit)}
+  .b-conf-high{background:#e8f6ef;color:#0f6e56} .b-conf-med{background:#fdf3e3;color:#9a6a00} .b-conf-low{background:#fdecec;color:#b23b3b}
+  .loan{font-size:18px;font-weight:800;white-space:nowrap}
+  .desc{color:var(--ink);font-weight:600;margin:8px 0 2px}
+  .addr{color:var(--muted);font-size:13px}
+  .stats{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}
+  .stat{background:var(--chip);border-radius:7px;padding:4px 9px;font-size:12px;color:var(--navy)}
+  .stat b{color:var(--ink)}
+  .note{font-size:12.5px;color:var(--muted);margin:6px 0 10px;font-style:italic}
+  .lenders-l{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .lenders{display:flex;gap:8px;flex-wrap:wrap}
+  .lchip{border:1px solid var(--brand);color:var(--brand);background:#fff;border-radius:8px;
+         padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+  .lchip:hover{background:var(--brand);color:#fff}
+  .lchip small{display:block;font-weight:500;opacity:.8;font-size:10.5px}
+  .ready{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .readytog{display:flex;justify-content:space-between;align-items:center;width:100%;box-sizing:border-box;background:#fff;border:1px dashed #c9d6e2;border-radius:9px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--brand);cursor:pointer}
+  .readytog:hover{background:var(--bg)}
+  .readytog .rtico{display:inline-block;width:14px;font-weight:800;text-align:center}
+  .readytog b{color:var(--muted);font-weight:600}
+  .ready-body{margin-top:10px}
+  .frow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .frow input{flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .btn{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  .btnpair{display:flex;gap:16px;margin:2px 0 12px}
+  .btnpair .btn{flex:1}
+  .btn:disabled{opacity:.5;cursor:default}
+  .ok{color:var(--fit);font-weight:700}
+  .km{margin:2px 0 12px}
+  .lbtn{display:block;width:100%;box-sizing:border-box;background:var(--brand);color:#fff;border:none;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:700;letter-spacing:.2px;cursor:pointer;margin:8px 0 6px}
+  .lbtn:hover{filter:brightness(1.07)}
+  .trkbtn{display:block;width:100%;box-sizing:border-box;background:#fff;color:var(--brand);border:1px solid var(--brand);border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;margin:0 0 6px}
+  .trkbtn:hover{background:#eef4fb}
+  .trkbtn.added{border-color:#9fcfae;color:#1c7c3a;background:#f1f9f3}
+  .trkbtn:disabled{opacity:.85;cursor:default}
+  .topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 4px 14px}
+  .cardfoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+  .rm{background:none;border:none;color:#b23b3b;font-size:11px;cursor:pointer;text-decoration:underline;padding:0}
+  /* modal (shared) */
+  .overlay{position:fixed;inset:0;background:rgba(14,28,43,.55);display:none;z-index:50;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .overlay.show{display:block}
+  .modal{background:#fff;border-radius:14px;max-width:560px;width:calc(100% - 32px);margin:16px auto;padding:0;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  .modal h3{margin:0;background:linear-gradient(120deg,var(--navy),var(--brand));color:#fff;padding:14px 18px;font-size:15px}
+  .modal .body{padding:18px}
+  .pitch{font-size:13.5px;line-height:1.65}
+  .pitch .lbl{font-weight:800;color:var(--navy)}
+  .pitch .lead{margin-bottom:10px}
+  .sig{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.5}
+  .sig b{color:var(--ink)}
+  .m5note{margin-top:12px;background:var(--needbg);color:var(--need);border-radius:8px;padding:9px 11px;font-size:12px}
+  .mbtns{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:16px}
+  .dockbtn{width:28px;height:24px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:13px;line-height:1;color:#475569;padding:0;flex:none}
+  .dockbtn:hover{background:#f1f5f9}
+  .empty{padding:40px 10px;text-align:center;color:var(--muted)}
+  /* detail panel */
+  .dtitle{font-size:15px;font-weight:800;color:var(--navy);margin:0 0 12px}
+  .dsec{margin:0 0 16px}
+  .dh{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:0 0 8px}
+  .qrow{display:flex;gap:8px;align-items:flex-start;margin:0 0 7px;font-size:13px}
+  .qi{font-weight:800;width:16px;text-align:center;flex:none}
+  .q-ok .qi{color:var(--fit)} .q-warn .qi{color:var(--need)}
+  .qt-head,.qt-row{display:grid;grid-template-columns:1fr 116px 70px;gap:8px;align-items:center}
+  .qt-head{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:0 0 7px;border-bottom:2px solid var(--line)}
+  .qt-head div:nth-child(2){text-align:right} .qt-head .h-s{text-align:center}
+  .qt-row{font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .qt-c{color:var(--ink);font-weight:600} .qt-m{color:var(--muted);text-align:right;font-weight:700}
+  .qt-s{text-align:center;font-weight:800;font-size:16px;cursor:default}
+  .s-ok{color:var(--fit)} .s-no{color:var(--fail)} .s-warn{color:var(--need)} .s-verify{color:var(--muted)}
+  .qt-leg{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.7}
+  .qt-leg b{font-weight:800;color:var(--ink)} .qt-leg b.s-warn{color:var(--need)} .qt-leg b.s-no{color:var(--fail)} .qt-leg b.s-ok{color:var(--fit)}
+  .trkchk{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600;margin:2px 0 8px;user-select:none}
+  .trkchk .trkbox{width:17px;height:17px;border:1.5px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;background:#fff;flex:none}
+  .trkchk.on{color:var(--fit)} .trkchk.on .trkbox{background:var(--fit);border-color:var(--fit)}
+  .senttag{font-size:12px;color:var(--fit);font-weight:700;margin:6px 0 0;display:flex;align-items:center;gap:5px}
+  .wmlink{font-size:12px;color:#0a6ebd;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:4px;margin:1px 0 8px}
+  .wmlink:hover{text-decoration:underline}
+  .drow{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:4px 0;border-bottom:1px solid var(--line)}
+  .drow span{color:var(--muted)} .drow b{color:var(--ink);text-align:right}
+  .ev{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:13px}
+  .ein{width:96px;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:13px;text-align:right;color:var(--ink)}
+  .ein:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px rgba(28,117,188,.12)}
+  .drow small{color:var(--muted);font-weight:400;font-size:11.5px}
+  .cq{font-size:13.5px;color:var(--ink);margin:0 0 12px;padding:10px 0 0;border-top:1px solid var(--line)}
+  .opts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .arcrow{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+  .arcrow:last-child{border-bottom:none}
+  .arcrow .btn{flex:0 0 auto;white-space:nowrap}
+  .elbl{display:block;font-size:12px;color:#667;font-weight:600;margin:12px 0 4px}
+  .egrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #eBody input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;background:#fff;color:var(--ink)}
+  @media(max-width:520px){ .egrid{grid-template-columns:1fr} }
+  .opt{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:6px 11px;font-size:13px;cursor:pointer}
+  .opt.sel{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+  .lrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .lrow:last-child{border-bottom:none}
+  .lrow.off{opacity:.55;cursor:default}
+  .lrow input{margin-top:3px;flex:none}
+  .lfbar{display:flex;gap:8px;margin:0 0 8px}
+  .lfilter{flex:1;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  .lsort{border:1px solid var(--line);background:#fff;color:#475569;border-radius:8px;padding:0 12px;font-size:12px;cursor:pointer;white-space:nowrap}
+  .lsort:hover{background:#f3f5f9}
+  .lcount{font-size:12px;color:#64748b;margin:0 0 6px}
+  .lgh{font-size:11.5px;font-weight:700;color:#475569;letter-spacing:.4px;text-transform:uppercase;margin:8px 0 2px}
+  .ltop{display:inline-block;background:#eaf2ff;color:#1d4ed8;border-radius:6px;font-size:11px;font-weight:700;padding:1px 6px;margin-left:4px}
+  .lwhy{display:block;font-size:11.5px;color:#7c8694;margin-top:2px}
+  .lmore{display:block;width:100%;text-align:left;background:#fbf7ee;border:1px solid #f0e2bf;color:#8a6d1f;border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;cursor:pointer;margin:10px 0 4px}
+  .lmore:hover{filter:brightness(.99)}
+  .lrow.near{background:#fffdf7}
+  .ldet{flex:none;margin-left:auto;align-self:center;background:#fff;border:1px solid var(--line);color:#475569;border-radius:7px;padding:3px 9px;font-size:11.5px;cursor:pointer;white-space:nowrap}
+  .ldet:hover{background:#f3f5f9}
+  .ldel{flex:none;margin-left:6px;align-self:center;background:#fff;border:1px solid var(--line);color:#b23b3b;border-radius:7px;padding:3px 9px;cursor:pointer;font-weight:700;line-height:1.2}
+  .ldel:hover{background:#fdecec;border-color:#e6b3b3}
+  .lpgh{font-size:11.5px;font-weight:700;color:#475569;letter-spacing:.4px;text-transform:uppercase;margin:6px 0 8px}
+  .lpf{display:block;margin:0 0 10px}
+  .lpf>span{display:block;font-size:12px;color:#475569;margin:0;font-weight:600}
+  .lpr{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .lpr:last-child{border-bottom:none}
+  .lpk{flex:none;width:148px;color:#64748b}
+  .lpv{flex:1;color:var(--ink);font-weight:500}
+  textarea.cin{resize:vertical;font-family:inherit}
+  .cin{margin-top:6px;width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .dnote{font-size:12px;color:var(--muted);font-style:italic;margin-top:8px}
+  .docadd{display:flex;gap:8px;margin-top:10px}
+  .docadd input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .docrm{color:#b23b3b;cursor:pointer;font-weight:800;margin-left:4px}
+  .rentnote{font-size:12.5px;color:#9a6207;background:#fdf3e2;border:1px solid #f0d8a8;border-radius:8px;padding:8px 10px;margin-top:8px;font-style:normal}
+  .rentlk{font-size:13px;color:var(--ink);margin-top:8px}
+  .rentlk-btns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+  .lkbtn{display:inline-block;border:1px solid var(--brand);color:var(--brand);background:#fff;border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:700;text-decoration:none}
+  .lkbtn:hover{background:var(--bg)}
+  .rentest{font-size:13px;color:var(--ink);margin-left:10px}
+  .rerr{color:#b23b3b}
+  .rccount{display:inline-block;margin-left:8px;font-size:12px;color:#64748b;white-space:nowrap}
+  .rccount.near{color:#b45309;font-weight:600}
+  .rccount.over{color:#b91c1c;font-weight:700}
+  .dsub{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+  .legend{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+  .legk{font-size:10px;color:var(--muted);font-weight:700}
+  .tag{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+  .t-list{background:#eef2f7;color:#5a6b7e}
+  .t-est{background:#fdf3e2;color:#b07d18}
+  .t-conf{background:#e7f6ee;color:#1e8c5f}
+  .acc{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff}
+  .acc-h{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;font-weight:700;color:var(--navy);font-size:13.5px;user-select:none}
+  .acc-h .ico{flex:none}
+  .acc-h .chev{margin-left:auto;color:var(--muted);transition:transform .15s}
+  .acc.collapsed .acc-h .chev{transform:rotate(-90deg)}
+  .acc-b{padding:12px 13px;border-top:1px solid var(--line)}
+  .acc.collapsed .acc-b{display:none}
+  .acc.call{border-color:var(--brand)}
+  .acc.call .acc-h{background:#eef4fb;color:var(--brand)}
+  .dl{margin:2px 0 0;padding-left:18px}
+  .dl li{margin:3px 0;font-size:13px}
+  /* viewed status chips + note + recheck */
+  .vblock{margin:0 0 8px}
+  .vchips{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 0}
+  .vchip{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap}
+  .vchip:hover{background:var(--bg)}
+  .vchip.on{color:#fff}
+  .vchip.on.v-viewed{background:#64768a;border-color:#64768a}
+  .vchip.on.v-liked{background:var(--fit);border-color:var(--fit)}
+  .vchip.on.v-liked_na{background:#c07d16;border-color:#c07d16}
+  .vchip.on.v-diligence{background:#1ba3c9;border-color:#1ba3c9}
+  .vchip.on.v-pass{background:#8a93a1;border-color:#8a93a1}
+  .vmeta{margin:7px 0 0;font-size:12px}
+  .vnote{color:var(--ink);font-style:italic;cursor:text;padding:2px 0}
+  .vnote .ph{color:var(--muted);opacity:.75;font-style:normal}
+  .vrecheck{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;color:var(--muted)}
+  .vrbtn{border:1px solid var(--line);background:#fff;color:var(--brand);border-radius:7px;padding:2px 8px;font-size:11.5px;cursor:pointer;font-weight:600}
+  .vrbtn:hover{background:#eef4fb}
+  .vdue{display:inline-flex;align-items:center;gap:4px;background:#fdecea;color:#c0392b;border:1px solid #f3c0bb;border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:700}
+  .vdue.vsoon{background:#fdf3e2;color:#9a6a00;border-color:#f0d8a8}
+  .vtrigger{display:inline-flex;align-items:center;gap:6px;border:1px dashed #c9d6e2;background:#fff;color:var(--muted);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;user-select:none}
+  .vtrigger:hover{background:var(--bg);color:var(--brand);border-color:var(--brand)}
+  .vtrigger .vtcv{opacity:.6;font-size:10px}
+</style>
+
+<header>
+  <div class="bar topnav">
+    <div>
+      <h1>ASAP Deal Pipeline</h1>
+      <div class="sub">Screened WorkingMoni deals · matched to your lenders · build v54</div>
+    </div>
+    <nav class="appnav">
+      <span class="navt active">Deal Pipeline</span>
+      <a class="navt" href="https://docs.google.com/spreadsheets/d/1OBNz6g1PGVjonq9eWXMr3RxnOnf-RNGZ/edit" target="_blank" rel="noopener">Loan Tracker ↗</a>
+      <span class="navt soon" title="Coming next">Calculators</span>
+    </nav>
+  </div>
+</header>
+<div class="filters" id="filters">
+  <div class="bar">
+    <span class="chip active" data-f="all">All</span>
+    <span class="chip" data-f="priority">★ Priority</span>
+    <span class="chip" data-f="fit">FIT</span>
+    <span class="chip" data-f="need">Needs data</span>
+    <span class="chip" data-f="specialty">Specialty</span>
+    <span class="chip" data-f="drip">Add to drip</span>
+    <span class="chip" data-f="recheck">⏰ Recheck due</span>
+    <span class="chip" data-f="diligence">🔍 Due Diligence</span>
+    <span class="topbtns">
+      <button class="btn" onclick="openManualAdd()">+ New deal</button>
+      <button class="btn" onclick="document.getElementById('upfile').click()">⬆ Upload WorkingMoni .xlsx</button>
+      <input type="file" id="upfile" accept=".xlsx" style="display:none" onchange="onFile(this)">
+      <button class="btn ghost" onclick="openArchived()">🗄 Archived</button>
+      <button class="btn" id="exportDripBtn" onclick="exportDripCSV()" style="display:none">⬇ Export to CSV</button>
+      <span id="upmsg" class="note"></span>
+    </span>
+  </div>
+  <div class="bar searchbar">
+    <input id="search" type="search" placeholder="Search address, street, borrower name or email…" oninput="SEARCH=this.value; render();">
+  </div>
+  <div class="bar fbar2" id="fbar">
+    <span class="flbl">Filter</span>
+    <div class="ddrow">
+    <div class="dd" data-dim="type"><button class="ddbtn" type="button" data-dd="type"><span class="ddlbl">Loan type <span class="cnt" id="cnt-type"></span></span><span class="cv">▾</span></button><div class="ddpanel" id="pan-type"></div></div>
+    <div class="dd" data-dim="amount"><button class="ddbtn" type="button" data-dd="amount"><span class="ddlbl">Loan amount <span class="cnt" id="cnt-amount"></span></span><span class="cv">▾</span></button><div class="ddpanel" id="pan-amount"></div></div>
+    <div class="dd" data-dim="ltv"><button class="ddbtn" type="button" data-dd="ltv"><span class="ddlbl">LTV / LTC <span class="cnt" id="cnt-ltv"></span></span><span class="cv">▾</span></button><div class="ddpanel" id="pan-ltv"></div></div>
+    <div class="dd" data-dim="prop"><button class="ddbtn" type="button" data-dd="prop"><span class="ddlbl">Property type <span class="cnt" id="cnt-prop"></span></span><span class="cv">▾</span></button><div class="ddpanel" id="pan-prop"></div></div>
+    <div class="dd" data-dim="lien"><button class="ddbtn" type="button" data-dd="lien"><span class="ddlbl">Lien <span class="cnt" id="cnt-lien"></span></span><span class="cv">▾</span></button><div class="ddpanel" id="pan-lien"></div></div>
+    <div class="dd" data-dim="state"><button class="ddbtn" type="button" data-dd="state"><span class="ddlbl">State <span class="cnt" id="cnt-state"></span></span><span class="cv">▾</span></button><div class="ddpanel" id="pan-state"></div></div>
+    </div>
+    <button class="lnk" id="clearf" onclick="clearFilters()" style="display:none">Clear all</button>
+  </div>
+</div>
+<div class="wrap">
+  <div class="meta" id="meta">Loading pipeline…</div>
+  <div id="board" class="board"></div>
+</div>
+
+<!-- pitch preview modal -->
+<div class="overlay" id="overlay" style="z-index:80" onclick="if(event.target===this)closePitch()">
+  <div class="modal" style="max-width:680px">
+    <h3 id="mTitle">Pitch to lenders</h3>
+    <div class="body">
+      <div class="note" style="margin-bottom:10px">Pick the lenders, edit the summary once, and each gets their own copy (they won't see each other).</div>
+      <div class="dh">Send to</div>
+      <div id="pLenders"></div>
+      <div class="dh" style="margin-top:14px">Send as</div>
+      <div id="pfrom" class="opts">
+        <button class="opt" data-s="marketing" onclick="pickPitchSender(this)">Marketing</button>
+        <button class="opt" data-s="joe" onclick="pickPitchSender(this)">Joe</button>
+        <button class="opt sel" data-s="daniel" onclick="pickPitchSender(this)">Daniel (you)</button>
+      </div>
+      <div class="dh" style="margin-top:14px">Subject</div>
+      <input id="pSubject" class="cin">
+      <div class="dh" style="margin-top:10px">Email — edit once, sent to all selected</div>
+      <textarea id="pBody" class="cin" style="min-height:240px"></textarea>
+      <div class="note">Each lender is greeted by name; your signature, logo &amp; apply-online cards are added automatically.</div>
+      <div class="mbtns" style="border-top:1px solid var(--line);padding-top:12px;margin-top:8px">
+        <span id="pmsg" class="note" style="margin-right:auto"></span>
+        <button class="btn ghost" onclick="closePitch()">Cancel</button>
+        <button class="btn ghost" onclick="commitPitch('draft')">Save to Drafts</button>
+        <button class="btn" onclick="commitPitch('send')">Send to selected</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- lender profile modal (sits above the pitch modal) -->
+<div class="overlay" id="loverlay" style="z-index:60" onclick="if(event.target===this)closeLenderProfile()">
+  <div class="modal" style="max-width:560px">
+    <h3 id="lpTitle">Lender</h3>
+    <div class="body">
+      <div id="lpView"><div class="note">Loading profile…</div></div>
+      <div class="mbtns" style="border-top:1px solid var(--line);padding-top:12px;margin-top:8px">
+        <span id="lpmsg" class="note" style="margin-right:auto"></span>
+        <button class="btn ghost" onclick="closeLenderProfile()">Close</button>
+        <button class="btn" onclick="saveLenderProfile()">Save to master list</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- invite preview modal -->
+<div class="overlay" id="ioverlay" onclick="if(event.target===this)closeInvite()">
+  <div class="modal" style="max-width:720px">
+    <h3 id="iTitle">Invite preview</h3>
+    <div class="body">
+      <div id="iflag" class="m5note" style="display:none"></div>
+      <div id="ifrom" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <span class="legk">Send as:</span>
+        <button class="opt" data-s="marketing" onclick="pickSender(this)">Marketing</button>
+        <button class="opt" data-s="joe" onclick="pickSender(this)">Joe</button>
+        <button class="opt" data-s="daniel" onclick="pickSender(this)">Daniel (you)</button>
+      </div>
+      <iframe id="iframe" title="Invite preview" style="width:100%;height:480px;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>
+      <div id="imsg2" class="note" style="margin-top:8px"></div>
+      <div class="mbtns">
+        <button class="btn ghost" onclick="closeInvite()">Cancel</button>
+        <button class="btn ghost" id="ibtn-draft" onclick="commitInvite('draft')">Save to Drafts</button>
+        <button class="btn" id="ibtn-send" onclick="commitInvite('send')">Send now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- deal questions (email #2) modal -->
+<div class="overlay" id="qoverlay" style="z-index:70" onclick="if(event.target===this)closeQ()">
+  <div class="modal" style="max-width:720px">
+    <h3 id="qTitle">Clarifying questions</h3>
+    <div class="body">
+      <div id="qsrc" class="m5note" style="display:none"></div>
+      <div id="qfrom" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <span class="legk">Send as:</span>
+        <button class="opt" data-s="marketing" onclick="pickQSender(this)">Marketing</button>
+        <button class="opt" data-s="joe" onclick="pickQSender(this)">Joe</button>
+        <button class="opt sel" data-s="daniel" onclick="pickQSender(this)">Daniel (you)</button>
+      </div>
+      <label class="legk" style="display:block;margin-bottom:4px">Subject</label>
+      <input id="qsubject" placeholder="Subject" style="width:100%;margin-bottom:10px;padding:8px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px">
+      <label class="legk" style="display:block;margin-bottom:4px">Message <span style="color:#667;font-weight:400">&mdash; edit anything; your signature is added automatically</span></label>
+      <textarea id="qbody" style="width:100%;height:300px;font-family:inherit;font-size:14px;line-height:1.5;border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff;box-sizing:border-box"></textarea>
+      <div id="qmsg2" class="note" style="margin-top:8px"></div>
+      <div class="mbtns">
+        <button class="btn ghost" onclick="closeQ()">Cancel</button>
+        <button class="btn ghost" id="qbtn-draft" onclick="commitQ('draft')">Save to Drafts</button>
+        <button class="btn" id="qbtn-send" onclick="commitQ('send')">Send now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- key metrics & call sheet modal -->
+<div class="overlay" id="doverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="modal" style="max-width:640px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+      <button class="dockbtn" type="button" onclick="closeDetail()" title="Close" aria-label="Close" style="font-size:20px;color:#64748b">&times;</button>
+      <h3 id="dTitle" style="margin:0;flex:1">Key metrics & call sheet</h3>
+      <button class="dockbtn" type="button" onclick="dockDetail('left')" title="Dock to left half" aria-label="Dock left">&#9703;</button>
+      <button class="dockbtn" type="button" onclick="dockDetail('right')" title="Dock to right half" aria-label="Dock right">&#9704;</button>
+      <button class="dockbtn" type="button" onclick="dockDetail('full')" title="Full size (centered)" aria-label="Full size">&#9635;</button>
+    </div>
+    <div class="body">
+      <div id="dBody"></div>
+      <div class="mbtns" style="border-top:1px solid var(--line);padding-top:12px;margin-top:8px">
+        <span id="dmsg" class="note" style="margin-right:auto"></span>
+        <button class="btn ghost" onclick="closeDetail()">Close</button>
+        <button class="btn" onclick="saveCall()">Save &amp; re-screen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- archive (remove) modal -->
+<div class="overlay" id="aoverlay" onclick="if(event.target===this)closeArchive()">
+  <div class="modal" style="max-width:420px">
+    <h3>Remove deal</h3>
+    <div class="body">
+      <div id="aName" style="font-weight:600;margin-bottom:4px"></div>
+      <div class="note" style="margin-bottom:12px">It leaves the board but stays in your sheet and won’t come back on the next scrape.</div>
+      <div class="opts">
+        <button class="opt" onclick="archiveDeal('Funded')">Funded</button>
+        <button class="opt" onclick="archiveDeal('No longer available')">No longer available</button>
+        <button class="opt" onclick="archiveDeal('Dead')">Dead</button>
+      </div>
+      <div class="mbtns"><span id="amsg" class="note" style="margin-right:auto"></span><button class="btn ghost" onclick="closeArchive()">Cancel</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- archived list modal -->
+<div class="overlay" id="arcoverlay" onclick="if(event.target===this)closeArchived()">
+  <div class="modal" style="max-width:560px">
+    <h3>Archived deals</h3>
+    <div class="body">
+      <div class="note" style="margin-bottom:12px">Deals you removed from the board. Tap <b>Un-archive</b> to send one back — it’ll be re-screened on the next load.</div>
+      <div id="arcList">Loading…</div>
+      <div class="mbtns" style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
+        <span id="arcmsg" class="note" style="margin-right:auto"></span>
+        <button class="btn ghost" onclick="closeArchived()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- edit deal details modal -->
+<div class="overlay" id="eoverlay" onclick="if(event.target===this)closeEdit()">
+  <div class="modal" style="max-width:560px">
+    <h3>Edit deal details</h3>
+    <div class="body">
+      <div class="note" style="margin-bottom:12px">Correct anything here. It re-screens the deal and — if you've already invited the borrower — updates their application link automatically.</div>
+      <div id="eBody"></div>
+      <div class="mbtns" style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
+        <span id="emsg" class="note" style="margin-right:auto"></span>
+        <button class="btn ghost" onclick="closeEdit()">Cancel</button>
+        <button class="btn" onclick="saveEdit()">Save &amp; re-screen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== manual add deal (phone intake) ===== -->
+<style>
+  #naBody label.elbl{margin-top:12px}
+  #naBody input, #naBody select{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;background:#fff;color:var(--ink)}
+  #naBody input:focus, #naBody select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 2px rgba(28,117,188,.13)}
+  #naBody .narow{display:grid;grid-template-columns:1fr 110px;gap:10px}
+  @media(max-width:520px){ #naBody .narow{grid-template-columns:1fr} }
+</style>
+<div class="overlay" id="naoverlay" onclick="if(event.target===this)closeManualAdd()">
+  <div class="modal" style="max-width:520px">
+    <h3>New deal</h3>
+    <div class="body">
+      <div class="note" style="margin-bottom:12px">Quick phone-intake. Enter what you have &mdash; it lands as a <b>Needs-data</b> card you can enrich, screen, and match like any other deal. Borrower name or property address is enough to start.</div>
+      <div id="naBody">
+        <label class="elbl">Borrower name</label>
+        <input id="na-name" placeholder="e.g. Jane Smith" autocomplete="off">
+        <label class="elbl">Property address</label>
+        <input id="na-addr" placeholder="e.g. 123 Main St, Dallas, TX" autocomplete="off">
+        <div class="narow">
+          <div>
+            <label class="elbl">Loan amount</label>
+            <input id="na-amt" type="text" inputmode="numeric" placeholder="$">
+          </div>
+          <div>
+            <label class="elbl">State</label>
+            <input id="na-state" maxlength="2" placeholder="TX" style="text-transform:uppercase">
+          </div>
+        </div>
+        <label class="elbl">Loan type</label>
+        <select id="na-type">
+          <option value="">&mdash; select &mdash;</option>
+          <option>Purchase</option>
+          <option>Refinance</option>
+          <option>Cash-Out Refinance</option>
+          <option>Bridge</option>
+          <option>Fix &amp; Flip</option>
+          <option>Ground-Up Construction</option>
+          <option>Rental / DSCR</option>
+          <option>Land</option>
+          <option>Commercial / CRE</option>
+        </select>
+        <label class="elbl">Borrower email <span style="color:#9aa7b4;font-weight:400">(optional)</span></label>
+        <input id="na-email" type="email" placeholder="name@email.com" autocomplete="off">
+      </div>
+      <div class="mbtns" style="border-top:1px solid var(--line);padding-top:12px;margin-top:14px">
+        <span id="namsg" class="note" style="margin-right:auto"></span>
+        <button class="btn ghost" onclick="closeManualAdd()">Cancel</button>
+        <button class="btn" id="na-save" onclick="submitManualAdd()">Add deal</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function openManualAdd(){
+  ['na-name','na-addr','na-amt','na-state','na-email'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var t=document.getElementById('na-type'); if(t) t.value='';
+  var m=document.getElementById('namsg'); if(m){ m.textContent=''; m.style.color=''; }
+  document.getElementById('naoverlay').classList.add('show');
+  setTimeout(function(){ var f=document.getElementById('na-name'); if(f) f.focus(); }, 50);
+}
+function closeManualAdd(){ document.getElementById('naoverlay').classList.remove('show'); }
+function submitManualAdd(){
+  var name=(document.getElementById('na-name').value||'').trim();
+  var addr=(document.getElementById('na-addr').value||'').trim();
+  var m=document.getElementById('namsg'); m.style.color='';
+  if(!name && !addr){ m.style.color='#b23b3b'; m.textContent='Enter at least a borrower name or property address.'; return; }
+  var payload={
+    borrowerName: name,
+    address: addr,
+    loanAmount: (document.getElementById('na-amt').value||'').trim(),
+    state: (document.getElementById('na-state').value||'').trim(),
+    loanType: (document.getElementById('na-type').value||'').trim(),
+    borrowerEmail: (document.getElementById('na-email').value||'').trim()
+  };
+  var btn=document.getElementById('na-save'); if(btn) btn.disabled=true;
+  m.textContent='Adding\u2026';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(btn) btn.disabled=false;
+      if(res && res.ok){
+        m.innerHTML='<span class="ok">Added \u2713</span>';
+        if(typeof load==='function') load();
+        setTimeout(closeManualAdd, 700);
+      } else {
+        m.style.color='#b23b3b'; m.textContent=(res&&res.error)?res.error:'Could not add the deal.';
+      }
+    })
+    .withFailureHandler(function(err){ if(btn) btn.disabled=false; m.style.color='#b23b3b'; m.textContent='Error: '+((err&&err.message)?err.message:err); })
+    .pipeline_addManualDeal(JSON.stringify(payload));
+}
+</script>
+
+<script>
+var DEALS = [], FILTER = 'all', PITCH = '', INVITE_TOKEN = '', INVITE_I = -1, CURRENT = -1, CALL = {}, ARCH_I = -1, INVITE_BASE = '', INVITE_SIGS = {}, INVITE_SENDER = 'daniel', EDIT_I = -1, EDIT = {}, SEARCH = '', SEL = {type:{},amount:{},ltv:{},prop:{},lien:{},state:{}}, DDOPEN = '', PITCH_I = -1, PITCH_SENDER = 'daniel', PITCH_LENDERS = [], PITCH_ALL = [], PITCH_TOP = 3, PITCH_SORT = 'rank', LFILTER = '', NEAR_OPEN = false;
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function num(s){ var n=parseFloat(String(s==null?'':s).replace(/[^0-9.]/g,'')); return isNaN(n)?null:n; }
+function money(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
+
+document.getElementById('dBody').addEventListener('input', function(){ autoSaveCall(); });
+document.getElementById('filters').addEventListener('click', function(e){
+  var c = e.target.closest('.chip'); if(!c) return;
+  FILTER = c.getAttribute('data-f');
+  [].forEach.call(this.querySelectorAll('.chip'), function(x){ x.classList.toggle('active', x===c); });
+  render();
+});
+
+/* ---------- dropdown multi-select filters (WorkingMoni style) ---------- */
+var DD_DIMS = ['type','amount','ltv','prop','lien','state'];
+var AMOUNT_BUCKETS = [
+  {v:'<$250K',      lo:0,       hi:250000},
+  {v:'$250K\u2013$500K', lo:250000,  hi:500000},
+  {v:'$500K\u2013$1M',   lo:500000,  hi:1000000},
+  {v:'$1M\u2013$2M',     lo:1000000, hi:2000000},
+  {v:'$2M\u2013$5M',     lo:2000000, hi:5000000},
+  {v:'$5M+',        lo:5000000, hi:Infinity}
+];
+var LTV_BUCKETS = [
+  {v:'0\u201350%',  lo:0,  hi:50},
+  {v:'50\u201360%', lo:50, hi:60},
+  {v:'60\u201370%', lo:60, hi:70},
+  {v:'70\u201380%', lo:70, hi:80},
+  {v:'80\u201390%', lo:80, hi:90},
+  {v:'90%+',   lo:90, hi:Infinity}
+];
+function bucketOf_(n, buckets){ if(n==null) return null; for(var i=0;i<buckets.length;i++){ var b=buckets[i]; if(n>=b.lo && n<b.hi) return b.v; } return null; }
+function dealVal_(d, dim){
+  if(dim==='type')   return d.purpose || '';
+  if(dim==='prop')   return d.propClass || '';
+  if(dim==='lien')   return d.lien || '';
+  if(dim==='state')  return String(d.state||'').toUpperCase();
+  if(dim==='amount') return bucketOf_(num(d.loan), AMOUNT_BUCKETS);
+  if(dim==='ltv')    return bucketOf_(num(d.ltv),  LTV_BUCKETS);
+  return '';
+}
+function passesDim_(d, dim){
+  var sel = SEL[dim]; if(!Object.keys(sel).length) return true;
+  var v = dealVal_(d, dim); if(!v) return false;
+  return sel[v]===true;
+}
+document.getElementById('fbar').addEventListener('click', function(e){
+  var btn = e.target.closest('.ddbtn');
+  if(btn){ var dim = btn.getAttribute('data-dd'); DDOPEN = (DDOPEN===dim ? '' : dim); paintDD_(); return; }
+  var opt = e.target.closest('.opt');
+  if(opt){
+    var dd = opt.getAttribute('data-dim'), v = opt.getAttribute('data-v');
+    if(dd===null) return;
+    if(v==='__all'){
+      var allOn = opt.getAttribute('data-allon')==='1';
+      SEL[dd] = {};
+      if(!allOn) optionValues_(dd).forEach(function(x){ SEL[dd][x]=true; });
+    } else {
+      if(SEL[dd][v]) delete SEL[dd][v]; else SEL[dd][v]=true;
+    }
+    renderFilters(); render(); return;
+  }
+});
+document.addEventListener('click', function(e){ if(DDOPEN && !e.target.closest('#fbar')){ DDOPEN=''; paintDD_(); } });
+function paintDD_(){ DD_DIMS.forEach(function(dim){ var dd=document.querySelector('.dd[data-dim="'+dim+'"]'); if(dd) dd.classList.toggle('open', DDOPEN===dim); }); }
+
+function norm_(s){ return String(s==null?'':s).toLowerCase(); }
+function haystack_(d){ return [d.addrShort,d.street,d.city,d.state,d.borrowerName,d.borrowerEmail,d.type,d.purpose,d.loan].map(norm_).join(' '); }
+function passesFilters(d){
+  for(var i=0;i<DD_DIMS.length;i++){ if(!passesDim_(d, DD_DIMS[i])) return false; }
+  var q = SEARCH.trim().toLowerCase();
+  if(q && haystack_(d).indexOf(q) < 0) return false;
+  return true;
+}
+function anyFilter_(){ if(SEARCH.trim()!=='') return true; for(var i=0;i<DD_DIMS.length;i++){ if(Object.keys(SEL[DD_DIMS[i]]).length) return true; } return false; }
+function clearFilters(){ SEARCH=''; DD_DIMS.forEach(function(dim){ SEL[dim]={}; }); var s=document.getElementById('search'); if(s) s.value=''; renderFilters(); render(); }
+function uniqSorted_(arr){ var seen={}, out=[]; arr.forEach(function(x){ x=String(x||'').trim(); if(x && !seen[x]){ seen[x]=1; out.push(x); } }); out.sort(); return out; }
+function optionValues_(dim){
+  if(dim==='amount') return AMOUNT_BUCKETS.map(function(b){ return b.v; });
+  if(dim==='ltv')    return LTV_BUCKETS.map(function(b){ return b.v; });
+  if(dim==='type')   return uniqSorted_(DEALS.map(function(d){ return d.purpose; }));
+  if(dim==='prop')   return uniqSorted_(DEALS.map(function(d){ return d.propClass; }));
+  if(dim==='lien')   return uniqSorted_(DEALS.map(function(d){ return d.lien; }));
+  if(dim==='state')  return uniqSorted_(DEALS.map(function(d){ return String(d.state||'').toUpperCase(); }));
+  return [];
+}
+function optsHtml_(dim){
+  var vals = optionValues_(dim), sel = SEL[dim], selN = Object.keys(sel).length;
+  var allOn = (selN>0 && selN===vals.length);
+  if(!vals.length) return '<div class="opt" style="color:var(--muted);cursor:default">None available</div>';
+  var html = '<div class="opt sa" data-dim="'+dim+'" data-v="__all" data-allon="'+(allOn?'1':'0')+'"><span class="box'+(allOn?' on':'')+'"></span> Select all</div>';
+  html += vals.map(function(v){
+    return '<div class="opt" data-dim="'+dim+'" data-v="'+esc(v)+'"><span class="box'+(sel[v]?' on':'')+'"></span> '+esc(v)+'</div>';
+  }).join('');
+  return html;
+}
+function renderFilters(){
+  DD_DIMS.forEach(function(dim){
+    var pan = document.getElementById('pan-'+dim); if(pan) pan.innerHTML = optsHtml_(dim);
+    var cnt = document.getElementById('cnt-'+dim), n = Object.keys(SEL[dim]).length;
+    if(cnt){ cnt.textContent = n; cnt.className = 'cnt' + (n ? ' show' : ''); }
+  });
+  var cl = document.getElementById('clearf'); if(cl) cl.style.display = anyFilter_() ? '' : 'none';
+}
+
+function load(){
+  google.script.run
+    .withSuccessHandler(function(data){ DEALS = data || []; renderFilters(); render(); })
+    .withFailureHandler(function(err){ document.getElementById('meta').textContent = 'Error: ' + err.message; })
+    .pipeline_getBoard();
+}
+
+/* ---------- board: route by screener column (d.column) when present, else today's logic ---------- */
+function laneOf_(d){
+  var ov = String(d.laneOverride || '').toLowerCase();
+  if(ov==='priority'||ov==='fit'||ov==='need') return ov;
+  if(ov==='specialty') return 'need';   // specialty cards live inside the Needs-data column (with a Specialty tag + filter)
+  var c = String(d.column || (d.screen && d.screen.column) || '').toLowerCase();
+  if(c){
+    if(c.indexOf('priority')>=0) return 'priority';
+    if(c.indexOf('specialty')>=0 || c.indexOf('hold')>=0) return 'need';   // specialty lives inside Needs-data; the card carries a Specialty tag + filter
+    if(c.indexOf('need')>=0) return 'need';
+    if(c.indexOf('fit')>=0) return 'fit';
+  }
+  if(d.priority) return 'priority';
+  if(d.decision==='NEEDS DATA') return 'need';
+  if(d.decision==='FIT') return 'fit';
+  return 'need';
+}
+function chaseOf_(d){ var s = (d.chaseScore!=null ? d.chaseScore : (d.screen && d.screen.chaseScore)); s = parseFloat(s); return isNaN(s) ? -1 : s; }
+function isSpecialty_(d){ var ov=String(d.laneOverride||'').toLowerCase(); if(ov==='specialty') return true; if(ov==='priority'||ov==='fit'||ov==='need') return false; var c=String(d.column || (d.screen && d.screen.column) || '').toLowerCase(); if(c.indexOf('specialty')>=0 || c.indexOf('hold')>=0) return true; return !!(d.screen && d.screen.killers && d.screen.killers.length); }
+function colHtml(title, arr){
+  var cards = arr.length
+    ? arr.map(function(d){ return card(d, DEALS.indexOf(d)); }).join('')
+    : '<div class="empty" style="padding:18px;font-size:12px">None</div>';
+  return '<div class="col"><div class="col-head"><span>'+title+'</span><span class="cc">'+arr.length+'</span></div>'+cards+'</div>';
+}
+function render(){
+  var isDiligence_ = function(d){ return String(d.viewedStatus||'').toLowerCase()==='diligence'; };
+  var shown = DEALS.filter(passesFilters);
+  var diligence = shown.filter(isDiligence_);
+  shown = shown.filter(function(d){ return !isDiligence_(d); });
+  var pri  = shown.filter(function(d){ return laneOf_(d)==='priority'; });
+  var fit  = shown.filter(function(d){ return laneOf_(d)==='fit'; });
+  var need = shown.filter(function(d){ return laneOf_(d)==='need'; });
+  var spec = shown.filter(isSpecialty_);   // specialty = a card tag + a filter (cards live inside Needs-data)
+  // Needs-data: easy deals on top by chase score; specialty (hard-stop) deals sink to the bottom.
+  need.sort(function(a,b){ var sa=isSpecialty_(a)?1:0, sb=isSpecialty_(b)?1:0; if(sa!==sb) return sa-sb; return chaseOf_(b)-chaseOf_(a); });
+  var filtered = anyFilter_();
+  var metaN = (FILTER==='diligence') ? diligence.length : shown.length;
+  document.getElementById('meta').textContent = metaN + (filtered ? ' matching' : ' actionable') + ' deal' + (metaN===1?'':'s') + (FILTER==='all' ? '' : ' · filtered');
+
+  var drip = shown.filter(function(d){ var ol=(d.outreachLog?JSON.parse(d.outreachLog):null)||{calls:0,emails:0}; return ol.calls>=2 && ol.emails>=2; });
+  var recheck = shown.filter(function(d){ var info=recheckInfo_(d.recheckDate); return info && info.due && String(d.viewedStatus||'').toLowerCase()!=='pass'; });
+  var cols;
+  if(FILTER==='priority')       cols = colHtml('★ Priority', pri);
+  else if(FILTER==='fit')       cols = colHtml('FIT', fit);
+  else if(FILTER==='need')      cols = colHtml('Needs data', need);
+  else if(FILTER==='specialty') cols = colHtml('Specialty', spec);
+  else if(FILTER==='drip')      cols = colHtml('Add to drip', drip);
+  else if(FILTER==='recheck')   cols = colHtml('\u23F0 Due to recheck', recheck);
+  else if(FILTER==='diligence') cols = colHtml('\uD83D\uDD0D Due Diligence', diligence);
+  else                          cols = colHtml('★ Priority', pri) + colHtml('FIT', fit) + colHtml('Needs data', need);
+  document.getElementById('board').innerHTML = cols;
+  document.getElementById('board').className = 'board' + (FILTER==='all' ? '' : ' board-single');
+  document.getElementById('exportDripBtn').style.display = (FILTER==='drip' && drip.length) ? '' : 'none';
+  var cl = document.getElementById('clearf'); if(cl) cl.style.display = filtered ? '' : 'none';
+  var _shownAll = shown.concat(diligence);
+  for(var k=0;k<_shownAll.length;k++){ var oidx=DEALS.indexOf(_shownAll[k]); if(oidx>=0){ updateOutreachCounts(oidx); renderOutreachLog(oidx); } }
+}
+
+function addrHouseNum_(addr){ var m=String(addr||'').match(/^\s*(\d+)\b/); return m?m[1]:''; }
+var RC_USED = null;
+function fullAddrOf_(d){
+  var addr = d.addrShort || ((d.street||'')+', '+(d.city||'')+', '+(d.state||''));
+  var addrH = addrHouseNum_(d.addrShort);
+  if(d.houseNum && !addrH) addr = String(d.houseNum).trim()+' '+addr;
+  return addr;
+}
+function hasFullAddr_(d){ return !!((d.houseNum && String(d.houseNum).trim()) || addrHouseNum_(d.addrShort)); }
+function rcCountTxt_(){ return (RC_USED!=null) ? (RC_USED+' / 50 RentCast this mo') : ''; }
+function setRcCount(n){
+  RC_USED = Number(n)||0;
+  var els = document.querySelectorAll('.rccount');
+  for(var i=0;i<els.length;i++){
+    els[i].textContent = RC_USED + ' / 50 RentCast this mo';
+    els[i].className = 'rccount' + (RC_USED>=50?' over':(RC_USED>=40?' near':''));
+  }
+}
+function card(d, i){
+  var lane = laneOf_(d);
+  var _spec = isSpecialty_(d);
+  var cls = _spec ? 'spec' : ((lane==='fit'||lane==='priority') ? 'fit' : 'need');
+  var _sc = chaseOf_(d);
+  var _miss = (d.screen && d.screen.missing) || d.missing || [];
+  var _conf = String(d.confidence || (d.screen && d.screen.confidence) || '').toLowerCase();
+  var _confKey = _conf.indexOf('low')>=0 ? 'low' : (_conf.indexOf('med')>=0 ? 'med' : (_conf.indexOf('high')>=0 ? 'high' : ''));
+  var _confLabel = { high:'High confidence', med:'Med confidence', low:'Low confidence' }[_confKey] || '';
+  var badges =
+    (_spec
+      ? '<span class="badge b-spec">Specialty</span>'
+      : '<span class="badge ' + (lane==='need'?'b-need':'b-fit') + '">' + (lane==='need'?'NEEDS DATA':'FIT') + '</span>') +
+    (d.priority ? '<span class="badge b-star">★ Priority</span>' : '') +
+    (!_spec && _confKey ? '<span class="badge b-conf b-conf-'+_confKey+'" title="How complete/clean the data behind this grade is">'+_confLabel+'</span>' : '') +
+    (lane==='need' && !_spec && _sc>=0 ? '<span class="badge b-chase">chase '+_sc+'</span>' : '') +
+    (lane==='need' && !_spec && _miss.length===1 ? '<span class="badge b-almost">Almost · 1 field</span>' : '');
+  var stats = [
+    d.value!=='—' ? '<span class="stat"><b>'+esc(d.value)+'</b> value <small>('+esc(d.valueSrc)+')</small></span>' : '',
+    d.ltv!=='—'   ? '<span class="stat"><b>'+esc(d.ltv)+'</b> LTV <small>/ '+esc(d.cap)+' cap</small></span>' : '',
+    d.dscr        ? '<span class="stat">DSCR <b>'+esc(d.dscr)+'</b></span>' : '',
+    d.lien        ? '<span class="stat">'+esc(d.lien)+' lien</span>' : '',
+    d.fico        ? '<span class="stat">FICO <b>'+esc(d.fico)+'</b></span>' : '',
+    d.acres       ? '<span class="stat">'+esc(d.acres)+'</span>' : ''
+  ].join('');
+  var matchNames = d.lenders.length ? d.lenders.map(function(L){ return esc(L.short); }).join(', ') : '';
+  var n = (d.ready.house?1:0)+(d.ready.name?1:0)+(d.ready.email?1:0);
+  var hn=esc(d.houseNum||addrHouseNum_(d.addrShort)), bn=esc(d.borrowerName||''), be=esc(d.borrowerEmail||'');
+  var hasInfo = !!(d.ready.house || d.ready.name || d.ready.email);
+  return '' +
+  '<div class="card '+cls+'">' +
+    '<div class="row1"><div class="badges">'+badges+'</div><div class="loan">'+esc(d.loan)+'</div></div>' +
+    '<div class="desc">'+esc(d.type)+' · '+esc(d.propClass)+'</div>' +
+    '<div class="addr">'+esc(d.addrShort||'(address pending)')+'</div>' +
+    (d.sourceUrl ? '<a class="wmlink" href="'+esc(d.sourceUrl)+'" target="_blank" rel="noopener">\u2197 View original on WorkingMoni</a>' : '') +
+    '<div class="stats">'+stats+'</div>' +
+    '<div class="note">'+esc(d.note)+'</div>' +
+    '<div class="btnpair">' +
+      '<button class="btn ghost" onclick="openDetail('+i+')">\uD83D\uDCCB Key metrics &amp; call sheet</button>' +
+      '<button class="btn ghost" onclick="openEdit('+i+')">\u270F\uFE0F Edit details</button>' +
+    '</div>' +
+    (d.lenders.length
+      ? '<button class="lbtn" onclick="openPitch('+i+')">\uD83D\uDCE4 Matched Lenders</button>'
+      : '<div class="note">No matching lenders yet — adjust the deal details or add data.</div>') +
+    '<div class="senttag" id="ptag-'+i+'"'+(d.pitchedOn?'':' style="display:none"')+'>'+(d.pitchedOn?('\u2713 Lenders emailed '+esc(d.pitchedOn)):'')+'</div>' +
+    '<label class="trkchk'+(d.trackerAdded?' on':'')+'" id="trk-'+i+'" onclick="addToTracker('+i+')" title="'+(d.trackerAdded?'In your Loan Tracker \u2014 click to add another row':'Add this deal to your Loan Tracker')+'"><span class="trkbox">'+(d.trackerAdded?'\u2713':'')+'</span><span class="trktxt">'+(d.trackerAdded?'In Loan Tracker':'Add to Loan Tracker')+'</span></label>' +
+    '<div id="trkmsg-'+i+'" class="note" style="margin:0 0 6px"></div>' +
+    viewedBlockHtml(d, i) +
+    '<label class="trkchk'+(d.packageRequested?' on':'')+'" id="pkg-'+i+'" onclick="togglePackage('+i+')" title="'+(d.packageRequested?'Loan package requested from WorkingMoni \u2014 click to unmark':'Mark that you requested the loan package from WorkingMoni')+'"><span class="trkbox">'+(d.packageRequested?'\u2713':'')+'</span><span class="trktxt">'+(d.packageRequested?('Loan package requested \u00b7 '+esc(d.packageRequested)):'Request loan package')+'</span></label>' +
+    '<div id="pkgmsg-'+i+'" class="note" style="margin:0 0 6px"></div>' +
+    '<div class="senttag" id="itag-'+i+'"'+(d.invitedOn?'':' style="display:none"')+'>'+(d.invitedOn?('\u2713 Borrower invited '+esc(d.invitedOn)):'')+'</div>' +
+    '<div style="border-top:1px solid var(--line);padding-top:10px;margin-bottom:10px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;user-select:none" onclick="toggleOutreachLog('+i+')">' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-size:10px;color:var(--muted);transition:transform .15s;display:inline-block" id="ot-chev-'+i+'" onclick="event.stopPropagation()">▶</span>' +
+          '<span style="font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase">Outreach Log</span>' +
+          '<span style="font-size:11px;color:var(--muted);margin-left:4px" id="ot-counts-'+i+'"></span>' +
+        '</div>' +
+        '<div style="position:relative;display:inline-block">' +
+          '<button style="width:26px;height:26px;border-radius:6px;border:.5px solid var(--line);background:#fff;cursor:pointer;font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center;color:#0a6ebd;flex:none" onclick="event.stopPropagation();toggleOutreachMenu('+i+')" id="ot-plus-'+i+'">+</button>' +
+          '<div style="position:absolute;right:0;top:28px;background:#fff;border:.5px solid var(--line);border-radius:8px;min-width:150px;display:none;padding:4px;z-index:30" id="ot-pop-'+i+'">' +
+            '<button style="width:100%;text-align:left;padding:8px 10px;font-size:13px;border:0;background:0;border-radius:6px;cursor:pointer" onclick="logOutreach('+i+',\'call\')">📞 Log call</button>' +
+            '<button style="width:100%;text-align:left;padding:8px 10px;font-size:13px;border:0;background:0;border-radius:6px;cursor:pointer" onclick="logOutreach('+i+',\'email\')">✉ Log email</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="overflow:hidden;transition:max-height .18s ease;max-height:0" id="ot-hist-'+i+'" class="ot-hist-closed">' +
+        '<div style="background:var(--chip);border-radius:8px;padding:7px 10px;font-size:11.5px;line-height:1.6;margin-top:8px" id="ot-list-'+i+'"></div>' +
+        '<div style="font-size:10.5px;color:var(--muted);margin-top:4px;padding:0 6px">Tap any row to edit · × to delete</div>' +
+      '</div>' +
+      '<div style="margin-top:8px;padding:8px 10px;background:#FAEEDA;border:.5px solid #EF9F27;border-radius:8px;font-size:12px;color:#633806;font-weight:500;display:none" id="ot-drip-'+i+'">🔔 Add to drip campaign — limits reached</div>' +
+    '</div>' +
+    '<div class="ready">' +
+      '<button class="readytog" type="button" onclick="toggleReady('+i+')"><span><span class="rtico" id="rtico-'+i+'">'+(hasInfo?'\u2212':'+')+'</span> '+(hasInfo?'Borrower info':'Add borrower info')+'</span><b id="cnt-'+i+'">'+n+' of 3</b></button>' +
+      '<div class="ready-body" id="rb-'+i+'" style="display:'+(hasInfo?'block':'none')+'">' +
+        '<div class="frow">' +
+          '<input id="house-'+i+'" placeholder="House number" value="'+hn+'">' +
+          '<input id="name-'+i+'"  placeholder="Borrower name" value="'+bn+'">' +
+          '<input id="email-'+i+'" placeholder="Borrower email" value="'+be+'">' +
+        '</div>' +
+        '<div class="btnpair">' +
+          '<button class="btn" onclick="saveFields('+i+')">Save to sheet</button>' +
+          '<button class="btn ghost" onclick="invite('+i+')">Invite borrower</button>' +
+          '<button class="btn ghost" onclick="dealQuestions('+i+')">Email borrower questions</button>' +
+        '</div>' +
+        '<span id="msg-'+i+'"></span>' +
+        '<div id="imsg-'+i+'" class="note" style="margin-top:8px"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="cardfoot"><span>'+(d.dateAdded?('Added '+esc(d.dateAdded)):'')+'</span>' +
+      '<button class="rm" onclick="openArchive('+i+')">Remove</button></div>' +
+  '</div>';
+}
+
+function toggleReady(i){
+  var b=document.getElementById('rb-'+i), ic=document.getElementById('rtico-'+i);
+  if(!b) return;
+  var open = (b.style.display==='none');
+  b.style.display = open ? 'block' : 'none';
+  if(ic) ic.textContent = open ? '\u2212' : '+';
+}
+function saveFields(i){
+  var d = DEALS[i];
+  var house = document.getElementById('house-'+i).value.trim();
+  var addrH = addrHouseNum_(d.addrShort);
+  if(house && !d.houseNum && house === addrH) house = '';  // already in the address — don't duplicate it
+  var fields = {
+    house: house,
+    name:  document.getElementById('name-'+i).value.trim(),
+    email: document.getElementById('email-'+i).value.trim()
+  };
+  var msg = document.getElementById('msg-'+i);
+  msg.textContent = 'Saving…'; msg.className = 'note';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        d.ready = res.ready; d.addrShort = res.fullAddress || d.addrShort;
+        if(fields.house) d.houseNum = fields.house;
+        if(fields.name)  d.borrowerName = fields.name;
+        if(fields.email) d.borrowerEmail = fields.email;
+        var n = (res.ready.house?1:0)+(res.ready.name?1:0)+(res.ready.email?1:0);
+        document.getElementById('cnt-'+i).textContent = n + ' of 3';
+        msg.innerHTML = '<span class="ok">Saved ✓</span>';
+      } else { msg.textContent = 'Could not find that deal.'; }
+    })
+    .withFailureHandler(function(err){ msg.textContent = 'Error: ' + err.message; })
+    .pipeline_saveDealFields(d.id, fields);
+}
+
+/* ---------- invite (preview → draft/send) ---------- */
+function invite(i){
+  INVITE_I = i;
+  var d = DEALS[i];
+  var email = document.getElementById('email-'+i).value.trim();
+  var msg = document.getElementById('imsg-'+i);
+  if(!email && !d.ready.email){ msg.innerHTML = 'Add a borrower email above first, then tap Invite.'; return; }
+  msg.textContent = 'Preparing preview…';
+  function build(){
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(res && res.ok){ msg.textContent = ''; openInvitePreview(res); }
+        else { msg.textContent = (res && res.error) ? res.error : 'Could not build the invite.'; }
+      })
+      .withFailureHandler(function(err){ msg.textContent = 'Error: ' + err.message; })
+      .Pipeline_buildInvite(d.id);
+  }
+  if(email){
+    var fields = { house: document.getElementById('house-'+i).value.trim(), name: document.getElementById('name-'+i).value.trim(), email: email };
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(res && res.ok){ d.ready = res.ready; d.addrShort = res.fullAddress || d.addrShort;
+          var n=(res.ready.house?1:0)+(res.ready.name?1:0)+(res.ready.email?1:0); document.getElementById('cnt-'+i).textContent=n+' of 3'; }
+        build();
+      })
+      .withFailureHandler(function(err){ msg.textContent = 'Error: ' + err.message; })
+      .pipeline_saveDealFields(d.id, fields);
+  } else { build(); }
+}
+function renderInvite(){
+  var base = INVITE_BASE || '', sig = (INVITE_SIGS && INVITE_SIGS[INVITE_SENDER]) || '';
+  document.getElementById('iframe').srcdoc = base.split('__SIGHTML__').join(sig);
+}
+function setSenderChip(){
+  [].forEach.call(document.querySelectorAll('#ifrom .opt'), function(b){
+    b.classList.toggle('sel', b.getAttribute('data-s')===INVITE_SENDER);
+  });
+}
+function pickSender(el){ INVITE_SENDER = el.getAttribute('data-s'); setSenderChip(); renderInvite(); }
+function openInvitePreview(res){
+  INVITE_TOKEN = res.token;
+  INVITE_BASE = res.previewBase || '';
+  INVITE_SIGS = res.sigs || {};
+  INVITE_SENDER = res.sender || 'daniel';
+  document.getElementById('iTitle').textContent = 'Invite preview · ' + res.email;
+  setSenderChip();
+  renderInvite();
+  var f = document.getElementById('iflag');
+  if(res.flag){ f.style.display='block'; f.innerHTML = '⚑ ' + esc(res.flag); } else { f.style.display='none'; }
+  var m = document.getElementById('imsg2'); m.className='note'; m.textContent = '';
+  document.getElementById('ibtn-draft').disabled = false;
+  document.getElementById('ibtn-send').disabled = false;
+  document.getElementById('ioverlay').classList.add('show');
+}
+function closeInvite(){ document.getElementById('ioverlay').classList.remove('show'); }
+function commitInvite(mode){
+  var m = document.getElementById('imsg2');
+  var bd = document.getElementById('ibtn-draft'), bs = document.getElementById('ibtn-send');
+  bd.disabled = true; bs.disabled = true;
+  m.className='note'; m.textContent = (mode==='send' ? 'Sending…' : 'Saving…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        m.innerHTML = '<span class="ok">' + (mode==='send' ? 'Sent ✓' : 'Saved to Drafts ✓') + (res.sender?(' — as '+esc(res.sender)):'') + '</span>';
+        if(mode==='send'){
+          if(res.invitedOn && INVITE_I>=0 && DEALS[INVITE_I]){
+            DEALS[INVITE_I].invitedOn = res.invitedOn;
+            var it=document.getElementById('itag-'+INVITE_I);
+            if(it){ it.style.display='flex'; it.innerHTML='\u2713 Borrower invited '+esc(res.invitedOn); }
+          }
+          setTimeout(closeInvite, 1000);
+        }
+      } else { m.textContent = (res && res.error) ? res.error : 'Action failed.'; bd.disabled=false; bs.disabled=false; }
+    })
+    .withFailureHandler(function(err){ m.textContent = 'Error: ' + err.message; bd.disabled=false; bs.disabled=false; })
+    .Pipeline_commitInvite(INVITE_TOKEN, mode, INVITE_SENDER);
+}
+
+/* ---------- deal questions: email #2 (preview \u2192 draft/send) ---------- */
+var Q_I = -1, Q_SENDER = 'daniel';
+function pickQSender(el){
+  Q_SENDER = el.getAttribute('data-s');
+  [].forEach.call(document.querySelectorAll('#qfrom .opt'), function(b){ b.classList.toggle('sel', b.getAttribute('data-s')===Q_SENDER); });
+}
+function dealQuestions(i){
+  Q_I = i; Q_SENDER = 'daniel';
+  var d = DEALS[i];
+  var be = (document.getElementById('email-'+i) && document.getElementById('email-'+i).value.trim()) || d.borrowerEmail || '';
+  var box = document.getElementById('imsg-'+i);
+  if(!be){ if(box){ box.textContent='Add a borrower email above first, then tap Email borrower questions.'; box.className='note'; } return; }
+  if(box){ box.textContent='Drafting questions\u2026'; box.className='note'; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){ if(box) box.textContent=''; openQ(res); }
+      else if(box){ box.textContent = (res && res.error) ? res.error : 'Could not draft the questions.'; }
+    })
+    .withFailureHandler(function(e){ if(box){ box.textContent = 'Error: '+(e && e.message ? e.message : e); } })
+    .pipeline_buildDealQuestions(d.id);
+}
+function openQ(res){
+  document.getElementById('qTitle').textContent = 'Clarifying questions \u00b7 ' + res.email;
+  document.getElementById('qsubject').value = res.subject || '';
+  document.getElementById('qbody').value = res.body || '';
+  Q_SENDER = 'daniel';
+  [].forEach.call(document.querySelectorAll('#qfrom .opt'), function(b){ b.classList.toggle('sel', b.getAttribute('data-s')==='daniel'); });
+  var sc = document.getElementById('qsrc');
+  if(res.source && res.source.indexOf('gemini')<0){ sc.style.display='block'; sc.textContent = 'Drafted from rules \u2014 AI reason: ' + res.source + '. Edit as needed.'; }
+  else { sc.style.display='none'; }
+  document.getElementById('qmsg2').textContent='';
+  var _qv=document.getElementById('qoverlay'); try{ document.body.appendChild(_qv); }catch(e){} _qv.style.zIndex='100000'; _qv.classList.add('show');
+  try{ makeDetailDraggable(document.querySelector('#qoverlay .modal')); }catch(e){}
+}
+function closeQ(){ document.getElementById('qoverlay').classList.remove('show'); }
+function commitQ(mode){
+  if(Q_I<0) return;
+  var d = DEALS[Q_I];
+  var subject = document.getElementById('qsubject').value;
+  var body = document.getElementById('qbody').value;
+  var m = document.getElementById('qmsg2');
+  var bd = document.getElementById('qbtn-draft'), bs = document.getElementById('qbtn-send');
+  m.textContent = (mode==='send'?'Sending\u2026':'Saving draft\u2026'); m.className='note';
+  bd.disabled = true; bs.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(res){
+      bd.disabled=false; bs.disabled=false;
+      if(res && res.ok){
+        m.textContent = (res.mode==='send') ? ('\u2713 Sent to '+res.email) : ('\u2713 Saved to Drafts ('+res.email+')');
+        setTimeout(closeQ, 1100);
+      } else { m.textContent = (res && res.error) ? res.error : 'Could not complete.'; }
+    })
+    .withFailureHandler(function(e){ bd.disabled=false; bs.disabled=false; m.textContent='Error: '+(e&&e.message?e.message:e); })
+    .pipeline_commitDealQuestions(d.id, subject, body, mode, Q_SENDER);
+}
+
+/* ---------- pitch preview ---------- */
+function exitText(d){
+  if(d.exit && d.exit.trim()) return d.exit.trim();
+  if(d.cat==='fixflip') return 'Sale on completion';
+  if(d.cat==='groundup') return 'Sale or refinance on completion';
+  if(d.cat==='dscr') return 'Hold as rental';
+  if(d.cat==='cashout' || d.cat==='refi') return 'Refinance / hold';
+  return 'Refinance or sale';
+}
+function pitchIntro_(){ return 'Wanted to get your thoughts on this one \u2014 quick summary below.\n\n'; }
+function cityState_(addr){
+  var parts = String(addr||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  if(parts.length>=2){
+    var last = parts[parts.length-1];
+    var st = (last.match(/\b([A-Za-z]{2})\b/)||[])[1] || '';
+    return parts[parts.length-2] + (st?(', '+st.toUpperCase()):'');
+  }
+  return parts.join(', ');
+}
+function buildPitchSubject(d){
+  var c = (typeof PITCH_CALC !== 'undefined' && PITCH_CALC) ? PITCH_CALC : {};
+  var _cat = resolveCategory_(d, c);
+  var isDscr = (_cat==='dscr');
+  if(isDscr){
+    function k$(n){ return abbrK_(n); }
+    var loanK = c.loan ? k$(c.loan) : (d.loan ? k$(String(d.loan).replace(/[^0-9.]/g,'')) : '');
+    var rentType = /short/i.test(c.incomeBasis||'') ? 'Short-Term Rental' : 'Long-Term Rental';
+    var dscr = (c.dscr||d.dscr||'');
+    var ltv  = (c.loan && c.value) ? (Math.round(c.loan/c.value*100)+'%') : (d.ltv||'');
+    var cs   = cityState_(c.address||d.addrShort||'');
+    var lead = [loanK, 'DSCR', rentType].filter(Boolean).join(' ');
+    var tail = [];
+    if(dscr) tail.push(dscr+'x DSCR');
+    if(ltv)  tail.push(ltv+' LTV');
+    if(cs)   tail.push(cs);
+    return (lead + (tail.length?(' | '+tail.join(' | ')):'')).trim();
+  }
+  var loanK2 = c.loan ? abbrK_(c.loan) : (d.loan ? abbrK_(d.loan) : '');
+  var cs2 = cityState_(c.address||d.addrShort||'');
+  if(_cat==='commercial'){
+    var tC=[]; var lv=(c.ltv||d.ltv||'').replace(/[^0-9.%]/g,''); var dc=(c.dscr||d.dscr||'').replace(/[^0-9.]/g,'');
+    if(lv) tC.push(lv+' LTV'); if(dc) tC.push(dc+'x DSCR'); if(cs2) tC.push(cs2);
+    return ([loanK2,'Commercial'].filter(Boolean).join(' ')+(tC.length?(' | '+tC.join(' | ')):'')).trim();
+  }
+  if(_cat==='landdev'){
+    var tL=[]; var lots=c.lots?(Math.round(c.lots)+' Lots'):''; if(lots) tL.push(lots); if(cs2) tL.push(cs2);
+    return ([loanK2,'Land Development'].filter(Boolean).join(' ')+(tL.length?(' | '+tL.join(' | ')):'')).trim();
+  }
+  if(_cat==='fixflip' || _cat==='groundup' || _cat==='bridge'){
+    var bt=(_cat==='groundup')?'Ground-Up':((_cat==='fixflip')?'Fix & Flip':'Bridge');
+    var tB=[]; var ltc=(c.ltc||'').replace(/[^0-9.%]/g,''); var arvK=c.arv?abbrK_(c.arv):'';
+    if(ltc) tB.push(ltc+' LTC'); if(arvK) tB.push('ARV '+arvK); if(cs2) tB.push(cs2);
+    return ([loanK2,bt].filter(Boolean).join(' ')+(tB.length?(' | '+tB.join(' | ')):'')).trim();
+  }
+  return 'Deal for review: ' + (d.addrShort||'') + (d.loan?(' \u00b7 '+d.loan):'');
+}
+function abbrK_(x){
+  x=parseFloat(String(x).replace(/[^0-9.]/g,''))||0; if(x<=0) return '';
+  if(x>=1e6){ var m=Math.round((x/1e6)*10)/10; return '$'+(m%1===0?m.toFixed(0):m.toFixed(1))+'M'; }
+  return '$'+Math.round(x/1000)+'K';
+}
+function resolveCategory_(d, c){
+  var f=(c&&c.facts)||{};
+  var pt=String(f.propType||'').toLowerCase();
+  var blob=(String(f.purpose||'')+' '+String(f.full||'')).toLowerCase();
+  var RES={dscr:1,fixflip:1,groundup:1,bridge:1};
+  var base=d.cat || ({DSCR:'dscr',Commercial:'commercial',LandDev:'landdev',BFF:'fixflip'})[(c&&c.tab)||''] || '';
+  if(pt){
+    if(/\bland\b|\blot\b|\blots\b|\bacre|vacant|subdivision|parcel|entitl|horizontal/.test(pt)) return 'landdev';
+    if(/office|retail|industrial|warehouse|storage|hotel|motel|hospitality|strip|shopping|medical|mixed.?use|\bflex|commercial/.test(pt)) return 'commercial';
+    var isRes=/single family|\bsfr\b|condo|townhom|townhous|duplex|triplex|fourplex|quadplex|\bresiden|1-4|2-4/.test(pt);
+    if(isRes && !RES[base]){
+      if(/\bground.?up|new construction/.test(blob)) return 'groundup';
+      if(/\bflip\b|\brehab\b|\bbrrrr\b|value.?add/.test(blob)) return 'fixflip';
+      if(/\bbridge\b/.test(blob) && !/\brental\b|\bdscr\b|long.?term|buy.?and.?hold/.test(blob)) return 'bridge';
+      return 'dscr';
+    }
+  }
+  if(base) return base;
+  if(/\bland\b|\blot\b|acre|subdivision/.test(blob)) return 'landdev';
+  if(/office|retail|industrial|warehouse|commercial/.test(blob)) return 'commercial';
+  if(/\bground.?up|construction/.test(blob)) return 'groundup';
+  if(/\bflip\b|\brehab\b|\bbrrrr\b/.test(blob)) return 'fixflip';
+  if(/\bbridge\b/.test(blob)) return 'bridge';
+  return 'dscr';
+}
+function factPropType_(d, c){ var f=(c&&c.facts)||{}; return String(f.propType||'').trim() || String((c&&c.propType)||'').trim() || String(d.statedType||'').trim() || d.pitchClass || d.propClass || ''; }
+function factLien_(d, c){ var f=(c&&c.facts)||{}; var l=String(f.lien||d.lien||'').toLowerCase(); if(/(^|\D)2(\D|$)|second|2nd/.test(l)) return '2nd'; if(/(^|\D)3(\D|$)|third|3rd/.test(l)) return '3rd'; return '1st'; }
+function factPurpose_(d, c){ var f=(c&&c.facts)||{}; return String(f.purpose||'').trim() || String((c&&c.purpose)||'').trim() || d.type || ''; }
+function capStructureLine_(pos){
+  pos=String(pos||'').trim(); if(!pos) return '';
+  var map={
+    'Sponsor cash equity':'borrower funds the down payment and closing costs in cash',
+    'Money-partner / JV equity':'a capital partner funds the equity gap under a JV / Co-GP',
+    'Cross-collateral / additional property':'equity in an owned property pledged to reduce cash-in',
+    'Cash from HELOC / SBLOC':'down and closing drawn from a home-equity or securities line',
+    '2nd-position gap loan':'a junior lien funds the gap behind our senior position',
+    'SDIRA / Solo 401k (non-recourse)':'retirement funds invest as a passive, non-recourse LP',
+    'Land owned free & clear':'no acquisition financing needed; full sponsor equity in the dirt',
+    'Land with existing liens':'existing liens to be cleared or subordinated at close',
+    'Buying the land at close':'land acquisition financed as part of this facility',
+    'Experience / capital partner (Co-GP)':'partner brings track record and co-invests as Co-GP',
+    'Mezzanine / preferred equity':'fills the gap between the senior loan and sponsor equity'
+  };
+  return pos + (map[pos]?(' \u2014 ' + map[pos]):'');
+}
+function buildPitchBodyBFF(d, c, money){
+  var addr=(c.address||'').trim()||d.addrShort||'property on file';
+  var loan=c.loan?money(c.loan):(d.loan||''); var lien=factLien_(d, c);
+  var _cat=resolveCategory_(d, c);
+  var lt = _cat==='groundup'?'Ground-Up Construction':(_cat==='fixflip'?'Fix & Flip Bridge':(_cat==='bridge'?'Bridge (No Rehab)':(d.type||'Bridge (No Rehab)')));
+  var prop=factPropType_(d, c);
+  var ltc=(c.ltc||'').replace(/[^0-9.%]/g,''); var ltarv=(c.ltarv||'').replace(/[^0-9.%]/g,'');
+  var pp=c.pp?money(c.pp):''; var rehab=c.rehab?money(c.rehab):''; var arv=c.arv?money(c.arv):'';
+  var uses=c.uses?money(c.uses):''; var margin=(c.margin||'');
+  var fico=c.fico?String(Math.round(c.fico)):(d.fico||''); var exp=(c.exp||'');
+  var term=d.term||'6\u201312 months';
+  var cap=capStructureLine_(c.position); var exit=(typeof exitText==='function')?exitText(d):'';
+  var L=[]; L.push('Transaction Overview'); L.push('');
+  if(loan) L.push('\u2022 Loan Amount Requested: '+loan+' ('+lien+' Lien Position)');
+  L.push('\u2022 Loan Type: '+lt);
+  if(prop) L.push('\u2022 Property Type: '+prop);
+  if(addr) L.push('\u2022 Location: '+addr);
+  var lev=[]; if(ltc) lev.push(ltc+' Loan-to-Cost (LTC)'); if(ltarv) lev.push(ltarv+' Loan-to-ARV');
+  if(lev.length) L.push('\u2022 Leverage Profile: '+lev.join(' | '));
+  L.push('\u2022 Requested Terms: '+term+', Interest-Only');
+  L.push(''); L.push('Project Economics'); L.push('');
+  if(pp) L.push('\u2022 Purchase Price: '+pp);
+  if(rehab) L.push('\u2022 Rehab / Construction Budget: '+rehab);
+  if(uses) L.push('\u2022 Total Project Cost: '+uses);
+  if(arv) L.push('\u2022 After-Repair Value (ARV): '+arv);
+  if(margin) L.push('\u2022 Projected Net Margin: '+margin);
+  L.push(''); L.push('Sponsor Profile & Proposed Exit'); L.push('');
+  if(fico) L.push('\u2022 Credit Profile: '+fico+' FICO');
+  if(exp) L.push('\u2022 Experience: '+exp);
+  if(cap) L.push('\u2022 Capital Structure: '+cap);
+  if(exit) L.push('\u2022 Primary Exit Strategy: '+exit);
+  L.push('');
+  L.push('Next Steps: Application, scope of work, and deal sheets are ready. If this fits your lending box, let me know and I\u2019ll send over our baseline files.');
+  return L.join('\n');
+}
+function buildPitchBodyCommercial(d, c, money){
+  var addr=(c.address||'').trim()||d.addrShort||'property on file';
+  var loan=c.loan?money(c.loan):(d.loan||''); var lien=factLien_(d, c);
+  var pu=String(factPurpose_(d, c)||'').toLowerCase();
+  var lt='Commercial '+(/cash/.test(pu)?'Cash-Out Refinance':(/refi|refinance|rate/.test(pu)?'Refinance':'Acquisition'));
+  var amort=c.amort?(Math.round(c.amort)+'-Year Amortization'):'';
+  var prop=factPropType_(d, c);
+  var value=c.value?money(c.value):(d.value||''); var noi=c.noi?money(c.noi):'';
+  var cap=(c.cap||''); var dscr=(c.dscr||d.dscr||'').replace(/[^0-9.]/g,''); var dy=(c.dy||'');
+  var ltv=(c.ltv||'').replace(/[^0-9.%]/g,'')||d.ltv||'';
+  var fico=c.fico?String(Math.round(c.fico)):(d.fico||''); var capstr=capStructureLine_(c.position);
+  var exit=(typeof exitText==='function')?exitText(d):'';
+  var L=[]; L.push('Transaction Overview'); L.push('');
+  if(loan) L.push('\u2022 Loan Amount Requested: '+loan+' ('+lien+' Lien Position)');
+  L.push('\u2022 Loan Type: '+lt+(amort?(' \u2014 '+amort):''));
+  if(prop) L.push('\u2022 Property Type: '+prop);
+  if(addr) L.push('\u2022 Location: '+addr);
+  if(ltv) L.push('\u2022 Leverage Profile: '+ltv+' Loan-to-Value (LTV)');
+  L.push(''); L.push('Cash Flow & Property Metrics'); L.push('');
+  if(value) L.push('\u2022 Property Valuation: '+value);
+  if(noi) L.push('\u2022 Net Operating Income (NOI): '+noi+' / year');
+  if(cap) L.push('\u2022 Cap Rate: '+cap);
+  if(dscr) L.push('\u2022 Debt Service Coverage Ratio (DSCR): '+dscr+'x');
+  if(dy) L.push('\u2022 Debt Yield: '+dy);
+  L.push(''); L.push('Sponsor Profile & Proposed Exit'); L.push('');
+  if(fico) L.push('\u2022 Credit Profile: '+fico+' FICO');
+  if(capstr) L.push('\u2022 Capital Structure: '+capstr);
+  if(exit) L.push('\u2022 Primary Exit Strategy: '+exit);
+  L.push('');
+  L.push('Next Steps: Application, rent roll / operating statements, and deal sheets are ready. If this fits your lending box, let me know and I\u2019ll send over our baseline files.');
+  return L.join('\n');
+}
+function buildPitchBodyLandDev(d, c, money){
+  var addr=(c.address||'').trim()||d.addrShort||'property on file';
+  var loan=c.loan?money(c.loan):(d.loan||''); var lien=factLien_(d, c);
+  var prop=factPropType_(d, c)||'Residential land / development';
+  var lots=c.lots?(Math.round(c.lots)+' lots'):''; var homes=c.homes?(Math.round(c.homes)+' homes'):'';
+  var scope=[lots,homes].filter(Boolean).join(' / ');
+  var land=c.land?money(c.land):''; var budget=c.budget?money(c.budget):'';
+  var allin=c.allin?money(c.allin):''; var retail=c.retail?money(c.retail):'';
+  var margin=(c.margin||''); var presales=c.presales?String(Math.round(c.presales)):'';
+  var fico=c.fico?String(Math.round(c.fico)):(d.fico||''); var exp=(c.exp||'');
+  var term=(c.term||d.term||''); if(term){ var tn=String(term).replace(/[^0-9]/g,''); term=tn?(tn+' months'):''; }
+  var capeq=capStructureLine_(c.position); var exit=(typeof exitText==='function')?exitText(d):'';
+  var L=[]; L.push('Transaction Overview'); L.push('');
+  if(loan) L.push('\u2022 Loan Amount Requested: '+loan+' ('+lien+' Lien Position)');
+  L.push('\u2022 Loan Type: Land Development / Horizontal Construction');
+  L.push('\u2022 Property Type: '+prop+(scope?(' \u2014 '+scope):''));
+  if(addr) L.push('\u2022 Location: '+addr);
+  if(term) L.push('\u2022 Requested Terms: '+term);
+  L.push(''); L.push('Project Economics'); L.push('');
+  if(land) L.push('\u2022 Land Basis: '+land);
+  if(budget) L.push('\u2022 Development / Construction Budget: '+budget);
+  if(allin) L.push('\u2022 Total All-In Cost: '+allin);
+  if(retail) L.push('\u2022 Projected Gross Revenue (Retail): '+retail);
+  if(margin) L.push('\u2022 Projected Margin: '+margin);
+  if(presales) L.push('\u2022 Pre-Sales / Contracts: '+presales);
+  L.push(''); L.push('Sponsor Profile & Proposed Exit'); L.push('');
+  if(fico) L.push('\u2022 Credit Profile: '+fico+' FICO');
+  if(exp) L.push('\u2022 Experience: '+exp);
+  if(capeq) L.push('\u2022 Capital / Equity Position: '+capeq);
+  if(exit) L.push('\u2022 Primary Exit Strategy: '+exit);
+  L.push('');
+  L.push('Next Steps: Application, project budget / pro forma, and deal sheets are ready. If this fits your lending box, let me know and I\u2019ll send over our baseline files.');
+  return L.join('\n');
+}
+function buildPitchBodyDSCR(d, c, money){
+  var addr   = (c.address||'').trim() || d.addrShort || 'property on file';
+  var loan   = c.loan ? money(c.loan) : (d.loan||'');
+  var lien   = factLien_(d, c);
+  var value  = c.value ? money(c.value) : (d.value||'');
+  var ltvNum = (c.loan && c.value) ? (c.loan/c.value*100) : (parseFloat(String(d.ltv||'').replace(/[^0-9.]/g,''))||0);
+  var ltv1   = ltvNum ? (ltvNum.toFixed(1)+'%') : '';
+  var rentN  = c.rent ? money(c.rent) : (d.rent ? String(d.rent).replace(/\/mo\s*$/i,'').trim() : '');
+  var pitia  = c.pitia ? money(c.pitia) : '';
+  var dscr   = (c.dscr||d.dscr||'');
+  var fico   = (c.fico||'').trim() || d.fico || '';
+  var prop   = factPropType_(d, c) || 'Residential';
+  var term   = (c.term||'').toString().replace(/[^0-9]/g,'') || ((String(d.term||'').match(/(\d+)\s*-?\s*yr/i)||[])[1]) || '30';
+  var pu = String(c.purpose||'').toLowerCase();
+  var loanPhrase = /cashout|cash-out/.test(pu) ? 'Cash-Out Refinance' : (/rate\/?term|rate-term/.test(pu) ? 'Rate-Term Refinance' : 'Permanent Financing');
+  var leasedYes = /yes/i.test(c.leased||'');
+  var occ = leasedYes ? 'Tenant-Occupied' : 'Non-Owner Occupied';
+  var leaseNote = leasedYes ? 'Long-term lease in place' : 'Market rent (1007 appraiser opinion)';
+  var prepay = String(c.prepay||'').trim();
+  var prepayPhrase = (prepay && !/none|^no\b|^0/i.test(prepay)) ? (prepay + ' Prepayment Penalty') : 'No Prepayment Penalty';
+  var termsLine = term + '-Year Fixed | ' + prepayPhrase;
+  var ftiYes = /yes/i.test(c.fti||'');
+  var sponsor = ftiYes
+    ? 'First-time investor entering the rental market; qualified on property cash flow (DSCR), not personal income.'
+    : 'Experienced buy-and-hold investor holding this asset within an established business-purpose rental portfolio.';
+  var exit = (typeof exitText==='function') ? exitText(d) : 'Long-term hold for cash flow; refinance or sale at stabilization.';
+  var L = [];
+  L.push('Transaction Overview'); L.push('');
+  if(loan)  L.push('\u2022 Loan Amount Requested: ' + loan + ' (' + lien + ' Lien Position)');
+  L.push('\u2022 Loan Type: ' + term + '-Year Fixed DSCR ' + loanPhrase);
+  if(prop)  L.push('\u2022 Property Type: ' + prop + ' (' + occ + ')');
+  if(addr)  L.push('\u2022 Location: ' + addr);
+  if(ltv1)  L.push('\u2022 Leverage Profile: ' + ltv1 + ' Loan-to-Value (LTV)');
+  L.push('\u2022 Requested Terms: ' + termsLine);
+  L.push('');
+  L.push('Cash Flow & Property Metrics'); L.push('');
+  if(value) L.push('\u2022 Property Valuation: ' + value);
+  if(rentN) L.push('\u2022 Gross Monthly Rental Income: ' + rentN + '/month (' + leaseNote + ')');
+  if(pitia) L.push('\u2022 Total Monthly PITIA: ' + pitia + '/month (Includes Principal, Interest, Taxes & Insurance)');
+  if(dscr)  L.push('\u2022 Debt Service Coverage Ratio (DSCR): ' + dscr + 'x');
+  L.push('');
+  L.push('Sponsor Profile & Proposed Exit'); L.push('');
+  if(fico)  L.push('\u2022 Credit Profile: ' + fico + ' FICO');
+  L.push('\u2022 Sponsor Position: ' + sponsor);
+  if(exit)  L.push('\u2022 Primary Exit Strategy: ' + exit);
+  L.push('');
+  L.push('Next Steps: Application details and deal sheets are ready. If this fits your lending box, let me know and I\u2019ll send over our baseline files.');
+  return L.join('\n');
+}
+function buildPitchBody(d){
+  var c = (typeof PITCH_CALC !== 'undefined' && PITCH_CALC) ? PITCH_CALC : {};
+  function money(n){ var x=parseFloat(n); return isNaN(x)?'':('$'+x.toLocaleString('en-US',{maximumFractionDigits:0})); }
+  var _cat = resolveCategory_(d, c);
+  if(_cat==='dscr') return buildPitchBodyDSCR(d, c, money);
+  if(_cat==='commercial') return buildPitchBodyCommercial(d, c, money);
+  if(_cat==='landdev') return buildPitchBodyLandDev(d, c, money);
+  if(_cat==='fixflip' || _cat==='groundup' || _cat==='bridge') return buildPitchBodyBFF(d, c, money);
+  var addr  = (c.address||'').trim() || d.addrShort || 'property on file';
+  var loan  = c.loan ? money(c.loan) : (d.loan||'');
+  var value = c.value ? money(c.value) : (d.value||'');
+  var ltv   = (c.loan && c.value) ? (Math.round(c.loan/c.value*100)+'%') : (d.ltv||'');
+  var vsrc  = c.value ? '' : (d.valueSrc||'');
+  var rentN = c.rent ? money(c.rent) : (d.rent ? String(d.rent).replace(/\/mo\s*$/i,'').trim() : '');
+  var dscr  = (c.dscr||'') || (d.dscr||'');
+  var fico  = (c.fico||'').trim() || d.fico || 'on file';
+  var prop  = (c.propType||'').trim() || d.pitchClass || d.propClass || '';
+  var L = [];
+  L.push('Deal summary \u2014 ' + addr);
+  L.push('');
+  L.push('Loan request: ' + loan + ' \u00b7 ' + (d.type||'') + (d.lien?(' \u00b7 '+d.lien+' lien'):''));
+  if(d.term) L.push('Requested terms: ' + d.term);
+  if(prop) L.push('Property: ' + prop);
+  L.push('Value & leverage: ' + value + (vsrc?(' ('+vsrc+')'):'') + (ltv?(' \u00b7 '+ltv+' LTV'):'') + (d.cap?(' / '+d.cap+' cap'):''));
+  if(d.cat==='fixflip' || d.cat==='groundup'){
+    L.push('Project: ' + (d.type||'') + ' \u00b7 value ' + value);
+  }
+  L.push('Borrower: FICO ' + fico + ' \u00b7 full profile available on request');
+  L.push('Exit: ' + exitText(d));
+  L.push('');
+  L.push('Full package (application, financials, photos) available on request \u2014 happy to send whatever you need to quote.');
+  return L.join('\n');
+}
+function togglePackage(i){
+  var d = DEALS[i];
+  var on = !d.packageRequested;
+  var box = document.getElementById('pkg-'+i);
+  var bx = box ? box.querySelector('.trkbox') : null, tx = box ? box.querySelector('.trktxt') : null;
+  var msg = document.getElementById('pkgmsg-'+i);
+  function paint(state, date){
+    if(box){ box.classList.toggle('on', !!state); box.title = state ? 'Loan package requested from WorkingMoni \u2014 click to unmark' : 'Mark that you requested the loan package from WorkingMoni'; }
+    if(bx){ bx.textContent = state ? '\u2713' : ''; }
+    if(tx){ tx.textContent = state ? ('Loan package requested'+(date?(' \u00b7 '+date):'')) : 'Request loan package'; }
+  }
+  if(tx){ tx.textContent='\u2026 Saving'; } if(msg){ msg.style.color=''; msg.textContent=''; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){ d.packageRequested = res.on ? (res.date||'\u2713') : ''; paint(res.on, res.date); }
+      else { paint(!!d.packageRequested, (typeof d.packageRequested==='string'?d.packageRequested:'')); if(msg){ msg.style.color='#b23b3b'; msg.textContent='Could not save: '+esc(res&&res.error?res.error:'no response'); } }
+    })
+    .withFailureHandler(function(err){ paint(!!d.packageRequested, (typeof d.packageRequested==='string'?d.packageRequested:'')); if(msg){ msg.style.color='#b23b3b'; msg.textContent='Error: '+esc((err&&err.message)?err.message:err); } })
+    .pipeline_setPackageRequested(d.id, on);
+}
+/* ---------- viewed status chips + note + recheck ---------- */
+var VIEW_STATUSES = [
+  {k:'viewed',   label:'\uD83D\uDC41 Viewed'},
+  {k:'liked',    label:'\u2B50 Liked'},
+  {k:'liked_na', label:'\uD83D\uDD12 Liked \u2014 not available'},
+  {k:'diligence', label:'\uD83D\uDD0D Due Diligence'},
+  {k:'pass',     label:'\u2715 Pass'}
+];
+function recheckInfo_(dateStr){
+  var s = String(dateStr||'').trim(); if(!s) return null;
+  var m = s.match(/(\d{4})-(\d{2})-(\d{2})/); if(!m) return {date:s, due:false, soon:false};
+  var d = new Date(+m[1], +m[2]-1, +m[3]); d.setHours(0,0,0,0);
+  var t = new Date(); t.setHours(0,0,0,0);
+  var days = Math.round((d - t)/86400000);
+  return { date:s, days:days, due:days<=0, soon:days>0 && days<=7 };
+}
+function fmtRecheck_(s){
+  var m = String(s||'').match(/(\d{4})-(\d{2})-(\d{2})/); if(!m) return s||'';
+  var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return mo[(+m[2])-1]+' '+(+m[3])+', '+m[1];
+}
+function viewedBlockHtml(d, i){ return '<div class="vblock" id="vblock-'+i+'">'+viewedInner_(d,i)+'</div>'; }
+var VIEW_OPEN = {};
+function viewedInner_(d, i){
+  var st = String(d.viewedStatus||'').toLowerCase();
+  if(VIEW_OPEN[i]){
+    var chips = VIEW_STATUSES.map(function(s){
+      var on=(st===s.k);
+      return '<span class="vchip'+(on?(' on v-'+s.k):'')+'" onclick="setViewedStatus('+i+',\''+s.k+'\')">'+s.label+'</span>';
+    }).join('');
+    return '<div class="vchips">'+chips+
+      (st?(' <span class="vrbtn" onclick="setViewedStatus('+i+',\''+st+'\')">clear</span>'):'')+
+      ' <span class="vrbtn" onclick="closeViewPicker('+i+')">close</span></div>'+
+      (st?('<div class="vmeta">'+viewedMetaHtml(d,i)+'</div>'):'');
+  }
+  if(!st){
+    return '<div class="vchips"><span class="vtrigger" onclick="openViewPicker('+i+')">Viewed status <span class="vtcv">\u25BE</span></span></div>';
+  }
+  var sel = VIEW_STATUSES.filter(function(s){ return s.k===st; })[0] || {k:st, label:st};
+  return '<div class="vchips"><span class="vchip on v-'+sel.k+'" onclick="openViewPicker('+i+')" title="Tap to change or clear">'+sel.label+'</span></div>'+
+    '<div class="vmeta">'+viewedMetaHtml(d,i)+'</div>';
+}
+function openViewPicker(i){ VIEW_OPEN[i]=true; renderViewedBlock(i); }
+function closeViewPicker(i){ VIEW_OPEN[i]=false; renderViewedBlock(i); }
+function viewedMetaHtml(d, i){
+  var st = String(d.viewedStatus||'').toLowerCase();
+  if(!st) return '';
+  var note = String(d.viewedNote||'');
+  var noteHtml = '<div class="vnote" id="vnote-'+i+'" onclick="editViewedNote('+i+')" title="Tap to '+(note?'edit':'add a')+' note">'+
+    '\u270E '+(note? esc(note) : '<span class="ph">add a note</span>')+'</div>';
+  var recheckHtml = '';
+  if(st!=='pass'){
+    var info = recheckInfo_(d.recheckDate);
+    var presets = [['1w','1 wk'],['1m','1 mo'],['3m','3 mo']];
+    var btns = presets.map(function(p){ return '<span class="vrbtn" onclick="setRecheck('+i+',\''+p[0]+'\')">'+p[1]+'</span>'; }).join('');
+    var cur = '';
+    if(info){
+      var cls = info.due ? 'vdue' : (info.soon ? 'vdue vsoon' : '');
+      var lbl = info.due ? ('\u23F0 Recheck due \u00b7 '+fmtRecheck_(info.date)) : ('\u23F0 Recheck '+fmtRecheck_(info.date));
+      cur = '<span class="'+(cls||'vrbtn')+'"'+(cls?'':' style="cursor:default"')+'>'+lbl+'</span>'+
+            ' <span class="vrbtn" onclick="setRecheck('+i+',\'clear\')">clear</span>';
+    }
+    var dval = (info && /\d{4}-\d{2}-\d{2}/.test(info.date)) ? info.date : '';
+    recheckHtml = '<div class="vrecheck"><span style="font-size:11.5px">Recheck in:</span>'+btns+
+      ' <input type="date" id="vrdate-'+i+'" onchange="setRecheck('+i+',this.value)" value="'+esc(dval)+'" style="border:1px solid var(--line);border-radius:7px;padding:2px 6px;font-size:11.5px">'+
+      (cur?(' '+cur):'')+'</div>';
+  }
+  return noteHtml + recheckHtml;
+}
+function renderViewedBlock(i){ var el=document.getElementById('vblock-'+i); if(el) el.innerHTML=viewedInner_(DEALS[i], i); }
+function setViewedStatus(i, status){
+  var d=DEALS[i];
+  var cur=String(d.viewedStatus||'').toLowerCase();
+  var next=(cur===status)?'':status;   // tap the active chip again to clear
+  d.viewedStatus=next;
+  VIEW_OPEN[i]=false;
+  render();
+  google.script.run.withFailureHandler(function(){}).pipeline_setViewedMeta(d.id, 'status', next);
+}
+function editViewedNote(i){
+  var d=DEALS[i];
+  var host=document.getElementById('vblock-'+i); if(!host) return;
+  var span=host.querySelector('.vnote'); if(!span) return;
+  var cur=String(d.viewedNote||'');
+  var inp=document.createElement('input');
+  inp.type='text'; inp.value=cur; inp.placeholder='note';
+  inp.style.cssText='width:100%;border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:12px';
+  span.replaceWith(inp); inp.focus();
+  function save(){ var v=inp.value.trim(); d.viewedNote=v; renderViewedBlock(i); google.script.run.withFailureHandler(function(){}).pipeline_setViewedMeta(d.id,'note',v); }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ inp.blur(); } if(e.key==='Escape'){ renderViewedBlock(i); } });
+}
+function setRecheck(i, when){
+  var d=DEALS[i], dateStr='';
+  if(when==='clear'){ dateStr=''; }
+  else if(/^\d{4}-\d{2}-\d{2}$/.test(when)){ dateStr=when; }
+  else {
+    var dt=new Date(); dt.setHours(0,0,0,0);
+    if(when==='1w') dt.setDate(dt.getDate()+7);
+    else if(when==='1m') dt.setMonth(dt.getMonth()+1);
+    else if(when==='3m') dt.setMonth(dt.getMonth()+3);
+    var y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), da=String(dt.getDate()).padStart(2,'0');
+    dateStr=y+'-'+m+'-'+da;
+  }
+  d.recheckDate=dateStr;
+  render();
+  google.script.run.withFailureHandler(function(){}).pipeline_setViewedMeta(d.id,'recheck',dateStr);
+}
+function addToTracker(i){
+  var d = DEALS[i];
+  var box = document.getElementById('trk-'+i);
+  var bx = box ? box.querySelector('.trkbox') : null, tx = box ? box.querySelector('.trktxt') : null;
+  var msg = document.getElementById('trkmsg-'+i);
+  if(tx){ tx.textContent = '\u2026 Adding'; }
+  if(msg){ msg.style.color=''; msg.textContent=''; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        d.trackerAdded = true;
+        if(box){ box.classList.add('on'); box.title='In your Loan Tracker \u2014 click to add another row'; }
+        if(bx){ bx.textContent='\u2713'; } if(tx){ tx.textContent='In Loan Tracker'; }
+        if(msg){ msg.style.color='#1c7c3a'; msg.textContent = (res.dup ? 'Added again \u2014 row '+res.row+'.' : 'Added to your Loan Tracker, row '+res.row+'.'); }
+      } else {
+        if(box){ box.classList.remove('on'); } if(bx){ bx.textContent=''; } if(tx){ tx.textContent='Add to Loan Tracker'; }
+        if(msg){ msg.style.color='#b23b3b'; msg.textContent = 'Could not add: '+esc(res&&res.error?res.error:'no response'); }
+      }
+    })
+    .withFailureHandler(function(err){
+      if(box){ box.classList.remove('on'); } if(bx){ bx.textContent=''; } if(tx){ tx.textContent='Add to Loan Tracker'; }
+      if(msg){ msg.style.color='#b23b3b'; msg.textContent='Error: '+esc((err&&err.message)?err.message:err); }
+    })
+    .pipeline_addToTracker(d.id);
+}
+function openPitch(i, calcSnap){
+  PITCH_I = i; PITCH_SENDER = 'daniel'; PITCH_LENDERS = []; PITCH_CALC = calcSnap || null;
+  var d = DEALS[i];
+  if(!d.lenders || !d.lenders.length) return;
+  document.getElementById('mTitle').textContent = 'Pitch \u00b7 ' + (d.addrShort||'');
+  document.getElementById('pSubject').value = buildPitchSubject(d);
+  document.getElementById('pBody').value = pitchIntro_() + buildPitchBody(d);
+  var pm = document.getElementById('pmsg'); pm.textContent=''; pm.style.color='';
+  [].forEach.call(document.querySelectorAll('#pfrom .opt'), function(b){ b.classList.toggle('sel', b.getAttribute('data-s')==='daniel'); });
+  document.getElementById('pLenders').innerHTML = '<div class="note">Loading lenders\u2026</div>';
+  var _ov=document.getElementById('overlay'); try{ document.body.appendChild(_ov); }catch(e){} _ov.style.zIndex='100000'; _ov.classList.add('show');
+  try{ makeDetailDraggable(document.querySelector('#overlay .modal')); }catch(e){}
+  LFILTER=''; NEAR_OPEN=false; PITCH_SORT='rank';
+  var nearList = (d.nearMisses||[]).map(function(x){ return {name:(x.lender||x.n||x.name||''), why:(x.why||x.reason||x.note||'')}; }).filter(function(x){ return x.name; });
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.ok){ document.getElementById('pLenders').innerHTML = '<div class="note" style="color:#b23b3b">Could not load lenders: '+esc(res&&res.error?res.error:'no response')+'</div>'; return; }
+      PITCH_TOP = res.top || 3;
+      var matches = (res.matches||[]).map(function(L,idx){ return {name:L.name, ae:L.ae, email:L.email, hasEmail:L.hasEmail, why:L.why, fit:true, top: idx < PITCH_TOP}; });
+      var near = (res.nearMisses||[]).map(function(L){ return {name:L.name, ae:L.ae, email:L.email, hasEmail:L.hasEmail, why:L.why, fit:false, top:false}; });
+      PITCH_ALL = matches.concat(near);
+      PITCH_ALL.forEach(function(L){ L.checked = !!(L.fit && L.top && L.hasEmail); });
+      renderPitchLenders();
+    })
+    .withFailureHandler(function(err){ document.getElementById('pLenders').innerHTML = '<div class="note" style="color:#b23b3b">Error: '+esc((err&&err.message)?err.message:err)+'</div>'; })
+    .pipeline_lenderOptions(d.id, nearList);
+}
+function byName_(a,b){ return ((a.name||'').toLowerCase()<(b.name||'').toLowerCase())?-1:1; }
+function renderRows_(list, heading){
+  if(!list.length) return '';
+  var h = heading ? ('<div class="lgh">'+esc(heading)+'</div>') : '';
+  return h + list.map(function(L){
+    var i = PITCH_ALL.indexOf(L);
+    var sub = L.hasEmail ? (esc(L.ae||'AE')+' \u00b7 '+esc(L.email)) : 'no email on file \u2014 add it in your lender tracker';
+    var badge = (L.fit && L.top) ? '<span class="ltop">\u2605 top match</span>' : '';
+    var why = L.why ? ('<span class="lwhy">'+esc(L.why)+'</span>') : '';
+    return '<label class="lrow'+(L.hasEmail?'':' off')+(L.fit?'':' near')+'" data-name="'+esc((L.name||'').toLowerCase())+'">'+
+      '<input type="checkbox" data-i="'+i+'"'+(L.checked?' checked':'')+(L.hasEmail?'':' disabled')+' onchange="onLenderToggle(this)">'+
+      '<span><b>'+esc(L.name)+'</b> '+badge+'<br><span class="note" style="margin:0">'+sub+'</span>'+why+'</span>'+
+      '<button type="button" class="ldet" onclick="event.preventDefault();event.stopPropagation();openLenderProfile('+i+')">details \u203A</button><button type="button" class="ldel" onclick="event.preventDefault();event.stopPropagation();deleteLender('+i+')" title="Remove this lender from the pitch">&#10005;</button></label>';
+  }).join('');
+}
+function renderPitchLenders(){
+  var box = document.getElementById('pLenders');
+  if(!PITCH_ALL.length){ box.innerHTML = '<div class="note">No lenders.</div>'; return; }
+  var matches = PITCH_ALL.filter(function(L){ return L.fit; });
+  var near    = PITCH_ALL.filter(function(L){ return !L.fit; });
+  if(PITCH_SORT==='az'){ matches = matches.slice().sort(byName_); near = near.slice().sort(byName_); }
+  var top3 = matches.slice(0,3);
+  var rest = matches.slice(3);
+  var moreCount = rest.length + near.length;
+  var html = '<div class="lfbar"><input id="lfilter" class="lfilter" placeholder="Filter lenders by name\u2026" oninput="filterLenders()" value="'+esc(LFILTER)+'">'+
+    '<button type="button" class="lsort" onclick="toggleLenderSort()">'+(PITCH_SORT==='az'?'Sort: A\u2013Z':'Sort: best match')+'</button></div>'+
+    '<div class="lcount" id="lcount"></div>'+
+    renderRows_(top3, 'Matching lenders (ranked)');
+  if(moreCount){
+    html += '<button type="button" class="lmore" onclick="toggleNear()">'+(NEAR_OPEN?'\u2212 Show fewer':'+ Show '+moreCount+' more lender'+(moreCount===1?'':'s'))+'</button>'+
+      '<div id="nearwrap" style="display:'+(NEAR_OPEN?'block':'none')+'">'+
+        renderRows_(rest, rest.length?'More matching lenders':'')+
+        (near.length?renderRows_(near, 'Close, but flagged ('+near.length+') \u2014 only if you\u2019ll ask for an exception'):'')+
+      '</div>';
+  }
+  box.innerHTML = html;
+  updateLenderCount(); filterLenders();
+}
+function onLenderToggle(cb){ var i=+cb.getAttribute('data-i'); if(PITCH_ALL[i]) PITCH_ALL[i].checked=cb.checked; updateLenderCount(); }
+function updateLenderCount(){
+  var n = PITCH_ALL.filter(function(L){ return L.checked; }).length;
+  var m = PITCH_ALL.filter(function(L){ return L.fit; }).length;
+  var el = document.getElementById('lcount'); if(el) el.textContent = n+' selected \u00b7 '+m+' matching lender'+(m===1?'':'s');
+}
+function filterLenders(){
+  var fi=document.getElementById('lfilter'); LFILTER = fi?fi.value:'';
+  var q=LFILTER.trim().toLowerCase();
+  var wrap=document.getElementById('nearwrap'); if(wrap) wrap.style.display=(q||NEAR_OPEN)?'block':'none';
+  var rows=document.querySelectorAll('#pLenders .lrow');
+  for(var i=0;i<rows.length;i++){ var nm=rows[i].getAttribute('data-name')||''; rows[i].style.display=(!q||nm.indexOf(q)>=0)?'':'none'; }
+}
+function toggleLenderSort(){ PITCH_SORT=(PITCH_SORT==='az')?'rank':'az'; renderPitchLenders(); }
+function toggleNear(){ NEAR_OPEN=!NEAR_OPEN; renderPitchLenders(); }
+function deleteLender(i){
+  if(PITCH_ALL[i]){ PITCH_ALL.splice(i,1); renderPitchLenders(); }
+}
+/* ---------- lender profile (view + edit, saves to master list) ---------- */
+var LP_NAME = '';
+function openLenderProfile(i){
+  var L = PITCH_ALL[i] || {}; var name = L.name || '';
+  if(!name) return;
+  LP_NAME = name;
+  document.getElementById('lpTitle').textContent = name;
+  document.getElementById('lpmsg').textContent = ''; document.getElementById('lpmsg').style.color='';
+  document.getElementById('lpView').innerHTML = '<div class="note">Loading profile\u2026</div>';
+  document.getElementById('loverlay').classList.add('show');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.ok){ document.getElementById('lpView').innerHTML = '<div class="note" style="color:#b23b3b">'+esc(res&&res.error?res.error:'Could not load profile.')+'</div>'; return; }
+      document.getElementById('lpView').innerHTML = lenderProfileHtml(res);
+    })
+    .withFailureHandler(function(err){ document.getElementById('lpView').innerHTML = '<div class="note" style="color:#b23b3b">Error: '+esc((err&&err.message)?err.message:err)+'</div>'; })
+    .pipeline_getLenderProfile(name);
+}
+function lpField_(id, label, val, ml, ph){
+  var pl = ph ? (' placeholder="'+esc(ph)+'"') : '';
+  var ctrl = ml
+    ? '<textarea id="'+id+'" class="cin" style="min-height:'+(ml===2?84:52)+'px"'+pl+'>'+esc(val||'')+'</textarea>'
+    : '<input id="'+id+'" class="cin" value="'+esc(val||'')+'"'+pl+'>';
+  return '<label class="lpf"><span>'+esc(label)+'</span>'+ctrl+'</label>';
+}
+function lenderProfileHtml(p){
+  return ''+
+    '<div class="lpgh">Contact</div>'+
+    lpField_('lp-contact','AE / contact name', p.contact)+
+    lpField_('lp-phone','Contact info (phone / email)', p.phoneEmail)+
+    lpField_('lp-web','Company website', p.website, 0, 'https://\u2026')+
+    '<div class="lpgh" style="margin-top:14px">What they\u2019re good for</div>'+
+    lpField_('lp-type','Type', p.type)+
+    lpField_('lp-sweet','Programs / sweet spot', p.sweetSpot, 1)+
+    lpField_('lp-niche','Niche / benefits', p.niche, 2, 'e.g. fast F&amp;F closings, foreign nationals OK, no DSCR seasoning\u2026')+
+    lpField_('lp-states','Primary states / notes', p.states, 1)+
+    '<div class="lpgh" style="margin-top:14px">Box &amp; terms</div>'+
+    lpField_('lp-minloan','Min loan', p.minLoan)+
+    lpField_('lp-maxloan','Max loan', p.maxLoan)+
+    lpField_('lp-rate','Rate range', p.rate, 1)+
+    lpField_('lp-origfee','Orig fee', p.origFee)+
+    lpField_('lp-fico','Min FICO', p.minFico, 1)+
+    lpField_('lp-foreign','Foreign nationals?', p.foreign)+
+    lpField_('lp-close','Typical close', p.close)+
+    '<div class="lpgh" style="margin-top:14px">Matching &amp; ranking (optional)</div>'+
+    lpField_('lp-ltvfico','Max LTV by FICO', p.maxLtvByFico, 0, '80@700, 75@640 → 80% for 700+, 75% for 640+')+
+    lpField_('lp-appraisal','Appraisal required?', p.appraisal, 0, 'Yes / No / desktop OK')+
+    lpField_('lp-responsiveness','Responsiveness (HIGH / MED / LOW)', p.responsiveness)+
+    lpField_('lp-whitelabel','White-label OK?', p.whiteLabel, 0, 'Yes / No')+
+    '<div class="lpgh" style="margin-top:14px">Tracking</div>'+
+    lpField_('lp-confidence','Confidence (HIGH / MED / LOW)', p.confidence)+
+    lpField_('lp-updated','Last updated', p.updated)+
+    '<div class="note" style="margin-top:6px">Saves to your master lender list. Box edits \u2014 loan size, FICO, states, sweet spot, confidence \u2014 also re-sync deal matching automatically. Max LTV by FICO is opt-in: leave it blank and that lender matches as before; fill it (e.g. 80@700, 75@640) and deals above their cap move to the flagged group.</div>';
+}
+function saveLenderProfile(){
+  if(!LP_NAME) return;
+  var m=document.getElementById('lpmsg'); m.style.color=''; m.textContent='Saving\u2026';
+  function v(id){ var el=document.getElementById(id); return el?el.value.trim():null; }
+  var fields = {
+    contact:v('lp-contact'), phoneEmail:v('lp-phone'), website:v('lp-web'), niche:v('lp-niche'),
+    type:v('lp-type'), sweetSpot:v('lp-sweet'), minLoan:v('lp-minloan'), maxLoan:v('lp-maxloan'),
+    rate:v('lp-rate'), origFee:v('lp-origfee'), minFico:v('lp-fico'), states:v('lp-states'),
+    foreign:v('lp-foreign'), close:v('lp-close'), confidence:v('lp-confidence'), updated:v('lp-updated'),
+    maxLtvByFico:v('lp-ltvfico'), appraisal:v('lp-appraisal'), responsiveness:v('lp-responsiveness'), whiteLabel:v('lp-whitelabel')
+  };
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        var msgHtml = '<span class="ok">Saved to master \u2713</span>';
+        if(res.resynced) msgHtml = '<span class="ok">Saved \u00b7 matching updated \u2713</span>';
+        else if(res.boxChanged) msgHtml = '<span class="ok">Saved \u2713</span> <span class="note" style="margin:0">(re-run import to apply box changes to matching)</span>';
+        m.innerHTML = msgHtml;
+        var em=((fields.phoneEmail||'').match(/[\w.+-]+@[\w-]+\.[\w.-]+/)||[''])[0];
+        PITCH_ALL.forEach(function(L){ if((L.name||'').toLowerCase()===String(LP_NAME).toLowerCase()){ if(fields.contact) L.ae=fields.contact; if(em){ L.email=em; L.hasEmail=true; } } });
+        renderPitchLenders();
+        setTimeout(closeLenderProfile, res.resynced?1100:700);
+      } else { m.style.color='#b23b3b'; m.textContent=(res&&res.error)?res.error:'Save failed.'; }
+    })
+    .withFailureHandler(function(err){ m.style.color='#b23b3b'; m.textContent='Error: '+((err&&err.message)?err.message:err); })
+    .pipeline_saveLenderProfile(LP_NAME, fields);
+}
+function closeLenderProfile(){ document.getElementById('loverlay').classList.remove('show'); }
+function pickPitchSender(el){
+  PITCH_SENDER = el.getAttribute('data-s');
+  [].forEach.call(el.parentNode.querySelectorAll('.opt'), function(x){ x.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+function closePitch(){ document.getElementById('overlay').classList.remove('show'); }
+function commitPitch(mode){
+  var names = PITCH_ALL.filter(function(L){ return L.checked; }).map(function(L){ return L.name; });
+  var m = document.getElementById('pmsg'); m.style.color='';
+  if(!names.length){ m.style.color='#b23b3b'; m.textContent='Pick at least one lender.'; return; }
+  var subject = document.getElementById('pSubject').value.trim();
+  var body = document.getElementById('pBody').value;
+  m.textContent = (mode==='send'?'Sending\u2026':'Saving\u2026');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        var fails = (res.results||[]).filter(function(r){ return !r.ok; });
+        m.innerHTML = '<span class="ok">'+(mode==='send'?'Sent':'Drafted')+' to '+res.sent+' lender'+(res.sent===1?'':'s')+' \u2713</span>'+(fails.length?(' \u00b7 skipped '+fails.length+' (no email)'):'');
+        if(mode==='send'){
+          if(res.pitchedOn && PITCH_I>=0 && DEALS[PITCH_I]){
+            DEALS[PITCH_I].pitchedOn = res.pitchedOn;
+            var pt=document.getElementById('ptag-'+PITCH_I);
+            if(pt){ pt.style.display='flex'; pt.innerHTML='\u2713 Lenders emailed '+esc(res.pitchedOn); }
+          }
+          setTimeout(closePitch, 1300);
+        }
+      } else { m.style.color='#b23b3b'; m.textContent = 'Failed: ' + (res&&res.error?res.error:'no response'); }
+    })
+    .withFailureHandler(function(err){ m.style.color='#b23b3b'; m.textContent = 'Error: ' + ((err&&err.message)?err.message:err); })
+    .pipeline_commitPitch(names, subject, body, PITCH_SENDER, mode, (DEALS[PITCH_I]&&DEALS[PITCH_I].id)||'');
+}
+
+/* ---------- Key metrics & call sheet ---------- */
+function tag(kind){
+  if(kind==='list') return '<span class="tag t-list">from listing</span>';
+  if(kind==='est')  return '<span class="tag t-est">estimate</span>';
+  if(kind==='conf') return '<span class="tag t-conf">confirmed</span>';
+  return '';
+}
+function chk(ok, label, detail, tg){
+  return '<div class="qrow '+(ok?'q-ok':'q-warn')+'"><span class="qi">'+(ok?'\u2713':'\u26A0')+'</span><div><b>'+esc(label)+'</b>'+(detail?' — '+esc(detail):'')+(tg?tag(tg):'')+'</div></div>';
+}
+function toggleSec(h){ h.parentNode.classList.toggle('collapsed'); }
+function sec(icon, title, body, open, cls){
+  return '<div class="acc'+(cls?(' '+cls):'')+(open?'':' collapsed')+'">'+
+    '<div class="acc-h" onclick="toggleSec(this)"><span class="ico">'+icon+'</span><span>'+esc(title)+'</span><span class="chev">\u25BE</span></div>'+
+    '<div class="acc-b">'+body+'</div></div>';
+}
+function docList(d){
+  var cat=d.cat||'', t=(d.type||'').toLowerCase(), L;
+  if(cat==='fixflip'||/flip/.test(t)) L=['Purchase contract','Rehab budget / scope of work','Contractor bids','Experience / prior flips','Government ID'];
+  else if(cat==='groundup'||/ground|construction/.test(t)) L=['Land deed / purchase docs','Construction budget & plans','Builder / GC information','Permits / entitlements','Government ID'];
+  else if(cat==='dscr'||/dscr|rental/.test(t)) L=['Lease(s) / rent roll','Property insurance','Mortgage / payoff statement (if refi)','Operating expenses','Government ID'];
+  else if(cat==='cashout'||cat==='refi'||/refinance|cash.?out/.test(t)) L=['Current mortgage / payoff statement','Property insurance','Recent appraisal or valuation','Lease(s) if rented','Government ID'];
+  else if(cat==='bridge'||/bridge/.test(t)) L=['Current mortgage / payoff statement (if any)','Exit-plan documentation','Property insurance','Government ID'];
+  else if(cat==='land'||/land/.test(t)) L=['Deed / purchase docs','Survey / plat','Zoning / entitlement info','Government ID'];
+  else if(cat==='purchase'||/purchase/.test(t)) L=['Purchase contract','Proof of funds for down payment','Property insurance quote','Government ID'];
+  else L=['Government ID','Property insurance','Mortgage / payoff statement','Recent valuation'];
+  var fixed = '<ul class="dl">'+L.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+  return fixed +
+    '<div id="customdocs">'+renderCustomDocs()+'</div>'+
+    '<div class="docadd"><input id="newdoc" placeholder="Add another document we\u2019ll need\u2026" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addDoc();}"><button class="btn ghost" type="button" onclick="addDoc()">+ Add</button></div>';
+}
+var DOCS = [];
+function renderCustomDocs(){
+  if(!DOCS.length) return '';
+  return '<ul class="dl">'+DOCS.map(function(x,idx){ return '<li>'+esc(x)+' <span class="docrm" title="Remove" onclick="removeDoc('+idx+')">\u00d7</span></li>'; }).join('')+'</ul>';
+}
+function addDoc(){
+  var inp=document.getElementById('newdoc'); if(!inp) return;
+  var v=String(inp.value||'').trim(); if(!v) return;
+  DOCS.push(v); inp.value='';
+  var c=document.getElementById('customdocs'); if(c) c.innerHTML=renderCustomDocs();
+}
+function removeDoc(idx){ DOCS.splice(idx,1); var c=document.getElementById('customdocs'); if(c) c.innerHTML=renderCustomDocs(); }
+function marketRentLookup(d){
+  if(!hasFullAddr_(d)){
+    return '<div class="rentnote">\u26A0 Enter the <b>house number</b> under \u201CBorrower info\u201D on the card (then tap Save) \u2014 the full address is needed to estimate market rent.</div>';
+  }
+  var addr = fullAddrOf_(d);
+  var enc = encodeURIComponent(addr);
+  return '<div class="rentlk"><b>Market rent</b> \u2014 '+esc(addr)+':'+
+    '<div style="margin:8px 0 4px"><button class="btn" type="button" onclick="fetchRentEst()">Estimate market rent</button><span id="rentest" class="rentest"></span><span class="rccount">'+rcCountTxt_()+'</span></div>'+
+    '<div class="rentlk-btns">'+
+      '<a class="lkbtn" target="_blank" rel="noopener" href="https://www.zillow.com/homes/'+enc+'_rb/">Zillow \u2197</a>'+
+      '<a class="lkbtn" target="_blank" rel="noopener" href="https://www.rentometer.com/">Rentometer \u2197</a>'+
+      '<a class="lkbtn" target="_blank" rel="noopener" href="https://www.google.com/search?q='+encodeURIComponent(addr+' average rent estimate')+'">Google \u2197</a>'+
+    '</div>'+
+    '<div class="dnote">\u201CEstimate market rent\u201D pulls a RentCast figure and fills it into Market rent above (needs a free RentCast key \u2014 see setup). The links are a manual backup.</div>';
+}
+function fetchRentEst(){
+  if(CURRENT<0) return;
+  var d=DEALS[CURRENT], addr=d.addrShort || ((d.street||'')+', '+(d.city||'')+', '+(d.state||''));
+  var out=document.getElementById('rentest'); if(out){ out.className='rentest'; out.textContent=' estimating\u2026'; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        if(res.used!=null) setRcCount(res.used);
+        var mr=document.getElementById('ev-mrent'); if(mr) mr.value=res.rent;
+        d.marketRent=String(res.rent);
+        google.script.run.pipeline_saveMarketRent(d.id, res.rent);
+        var rng=(res.low&&res.high)?(' (range $'+Number(res.low).toLocaleString()+'\u2013$'+Number(res.high).toLocaleString()+')'):'';
+        if(out) out.innerHTML=' est. <b>$'+Number(res.rent).toLocaleString()+'/mo</b>'+rng+' \u2014 filled above \u2713';
+      } else {
+        if(res&&res.used!=null) setRcCount(res.used);
+        var e=(res&&res.error)||'failed';
+        if(out){
+          if(e==='no_key') out.innerHTML=' <span class="rerr">add your RentCast API key to enable (see setup)</span>';
+          else if(e==='no_address') out.innerHTML=' <span class="rerr">need the full address first</span>';
+          else out.innerHTML=' <span class="rerr">couldn\u2019t estimate ('+esc(e)+') \u2014 use the links below</span>';
+        }
+      }
+    })
+    .withFailureHandler(function(err){ if(out) out.innerHTML=' <span class="rerr">error: '+esc(err.message)+'</span>'; })
+    .pipeline_estimateRent(addr);
+}
+/* ---------- property facts + as-is value (RentCast /avm/value) ---------- */
+function parsePropData_(d){ try{ var s=String(d.propData||'').trim(); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function propResultHtml_(p, d){
+  if(!p) return '';
+  function row(lbl,val){ return '<tr><td style="padding:2px 14px 2px 0;color:#64748b">'+lbl+'</td><td style="font-weight:600">'+val+'</td></tr>'; }
+  var dash='\u2014';
+  var beds=(p.beds!=null)?p.beds:dash, baths=(p.baths!=null)?p.baths:dash;
+  var sqft=(p.sqft!=null)?(Number(p.sqft).toLocaleString()+' sq ft'):dash;
+  var yr=(p.yearBuilt!=null)?p.yearBuilt:dash;
+  var lot=(p.lotSize!=null)?(Number(p.lotSize).toLocaleString()+' sq ft'):dash;
+  var val=(p.value!=null)?('$'+Number(p.value).toLocaleString()):dash;
+  var rng=(p.low&&p.high)?(' <span style="color:#64748b;font-weight:400">(range $'+Number(p.low).toLocaleString()+'\u2013$'+Number(p.high).toLocaleString()+')</span>'):'';
+  var rows=row('Beds',beds)+row('Baths',baths)+row('Square footage',sqft)+row('Year built',yr)+row('Lot size',lot);
+  if(p.propertyType) rows+=row('Property type',esc(p.propertyType));
+  rows+=row('Est. as-is value',val+rng);
+  if(p.lastSalePrice!=null) rows+=row('Last sale',('$'+Number(p.lastSalePrice).toLocaleString())+(p.lastSaleDate?(' <span style="color:#64748b;font-weight:400">('+esc(p.lastSaleDate)+')</span>'):''));
+  var listV=num(d.value), cmp='';
+  if(p.value!=null && listV!=null && listV>0){
+    var diff=p.value-listV, pctd=Math.round(diff/listV*100), sign=diff>=0?'+':'\u2212';
+    cmp='<div class="dnote" style="margin-top:6px">Listing/borrower value: <b>$'+Number(listV).toLocaleString()+'</b> \u00b7 RentCast est is '+sign+'$'+Number(Math.abs(diff)).toLocaleString()+' ('+sign+Math.abs(pctd)+'%).</div>';
+  }
+  var note;
+  if(p.recordFound===false){
+    note='<div class="rentnote" style="margin-top:8px">\u26A0 RentCast has <b>no public record</b> for this address, so beds/baths/sq ft aren\u2019t available and the value above is from <b>nearby comps only</b> (lower confidence). Verify beds/baths/sq ft and value from the listing, an appraisal, or the county site.</div>';
+  } else {
+    note='<div class="dnote" style="margin-top:6px">Public-record data via RentCast \u2014 confirm against the appraisal / your own comps before relying on it.</div>';
+  }
+  return '<table style="border-collapse:collapse;margin-top:2px"><tbody>'+rows+'</tbody></table>'+cmp+note;
+}
+function propDetailSection(d){
+  if(!hasFullAddr_(d)){
+    return '<div class="rentnote">\u26A0 Enter the <b>house number</b> under \u201CBorrower info\u201D on the card (then tap Save) \u2014 the full address is needed to look up property data.</div>';
+  }
+  var saved=parsePropData_(d);
+  return '<div class="rentlk">'+
+    '<div class="dnote" style="margin-bottom:8px">WorkingMoni often leaves out beds, baths and square footage. Pull them \u2014 plus an as-is value estimate \u2014 from public records. One lookup = one RentCast call.</div>'+
+    '<div style="margin:4px 0 8px"><button class="btn" type="button" onclick="fetchProperty()">Look up beds / baths / sq ft &amp; value</button><span class="rccount">'+rcCountTxt_()+'</span></div>'+
+    '<div id="propout">'+(saved?propResultHtml_(saved,d):'')+'</div>'+
+  '</div>';
+}
+function fetchProperty(){
+  if(CURRENT<0) return;
+  var d=DEALS[CURRENT], addr=fullAddrOf_(d);
+  var out=document.getElementById('propout');
+  if(out) out.innerHTML='<span class="rentest"> looking up\u2026</span>';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        if(res.used!=null) setRcCount(res.used);
+        var p={beds:res.beds,baths:res.baths,sqft:res.sqft,yearBuilt:res.yearBuilt,lotSize:res.lotSize,propertyType:res.propertyType,value:res.value,low:res.low,high:res.high,lastSalePrice:res.lastSalePrice,lastSaleDate:res.lastSaleDate,recordFound:res.recordFound};
+        d.propData=JSON.stringify(p);
+        if(out) out.innerHTML=propResultHtml_(p,d);
+        google.script.run.pipeline_savePropData(d.id, p);
+      } else {
+        if(res&&res.used!=null) setRcCount(res.used);
+        var e=(res&&res.error)||'failed';
+        var msg=(e==='no_key')?'add your RentCast API key to enable (see setup)'
+          :(e==='no_address')?'need the full address first'
+          :(e==='api_404')?'no public record found for this address'
+          :('couldn\u2019t look up ('+esc(e)+')');
+        if(out) out.innerHTML='<span class="rerr">'+msg+'</span>';
+      }
+    })
+    .withFailureHandler(function(err){ if(out) out.innerHTML='<span class="rerr">error: '+esc(err.message)+'</span>'; })
+    .pipeline_lookupProperty(addr);
+}
+function saveAppraised(){
+  if(CURRENT<0) return;
+  var d=DEALS[CURRENT];
+  var el=document.getElementById('ev-appraised'); if(!el) return;
+  var val=el.value.trim();
+  if(String(d.appraised||'')===val) return;
+  d.appraised=val;
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!(res && res.ok && res.deal)) return;
+      var c=res.deal;
+      var g=function(id){var e=document.getElementById(id);return e?e.value.trim():null;}, t;
+      if((t=g('ev-taxes'))!=null) c.taxesActual=t;
+      if((t=g('ev-ins'))!=null)   c.insActual=t;
+      if((t=g('ev-hoa'))!=null)   c.hoaActual=t;
+      if((t=g('ev-erent'))!=null) c.existingRent=t;
+      if((t=g('ev-mrent'))!=null) c.marketRent=t;
+      if((t=g('ev-notes'))!=null) c.callNotes=t;
+      c.customDocs=d.customDocs; c.propData=d.propData; c.appraised=val; c.callState=(d.callState||JSON.stringify(CALL));
+      if(res.decision==='FAIL'){ DEALS.splice(CURRENT,1); render(); setTimeout(closeDetail,600); return; }
+      DEALS[CURRENT]=c; render();
+      document.getElementById('dBody').innerHTML=detailHtml(c);
+      hydrateCall_();
+    })
+    .withFailureHandler(function(){})
+    .pipeline_saveAppraised(d.id, val);
+}
+function detailHtml(d){
+  var v = num(d.value), ltv = num(d.ltv), cap = num(d.cap), loanN = num(d.loan), ficoN = num(d.fico), dscrN = num(d.dscr);
+  var isDSCR = (d.cat==='dscr') || /dscr|rental/i.test(d.type||'');
+  var twoLien = /2nd|second|combined/i.test((d.lien||'')+' '+(d.type||''));
+  var acres = num(d.acres);
+  var confTag = (d.valueSrc==='borrower') ? 'conf' : 'list';
+  var cat = d.cat || '';
+  var isRehab = (cat==='fixflip' || cat==='groundup') || /flip|ground|construction/i.test(d.type||'');
+
+  /* 1) Does it qualify? */
+  var q = [];
+  if(isRehab){
+    q.push(chk(true, 'As-is leverage', (ltv!=null ? (d.ltv+' of as-is value — this flip is sized on ARV/cost (below)') : 'sized on ARV/cost (below)'), 'list'));
+  } else {
+    q.push(chk(ltv!=null && cap!=null && ltv<=cap+0.5, 'Loan-to-value',
+          (ltv!=null && cap!=null) ? (d.ltv+(ltv<=cap+0.5?(' — within the '+d.cap+' cap'):(' — over the '+d.cap+' cap'))) : 'need value & loan to compute', (ltv!=null?confTag:'')));
+  }
+  if(isDSCR) q.push(chk(dscrN!=null && dscrN>=1.00, 'Cash flow / DSCR',
+        dscrN!=null ? (d.dscr+(dscrN>=1.00?' — meets 1.00 min':' — below 1.00')) : 'need market rent to calculate', 'est'));
+  q.push(chk(ficoN!=null && ficoN>=680, 'FICO',
+        ficoN!=null ? (d.fico+(ficoN>=680?' — clears ~680 min':' — below ~680, limited programs')) : ((d.fico||'not provided')+' — confirm exact'), (ficoN!=null?'list':'')));
+  q.push(chk(true, 'Occupancy', 'non-owner-occupied — eligible', 'list'));
+  q.push(chk(loanN!=null && loanN>=100000, 'Loan size',
+        loanN!=null ? (d.loan+(loanN>=100000?' — above $100K floor':' — below $100K floor')) : 'loan amount unknown', 'list'));
+  q.push(chk(!twoLien, 'Lien position', (d.lien||'1st') + (twoLien?' — confirm a 2nd/mezz-capable lender':''), 'list'));
+  q.push(chk(false, 'Reserves', 'confirm 6 months of payments', ''));
+
+  var taxes = (v!=null) ? money(v*0.0125) : null;
+  var ins   = (v!=null) ? money(v*0.0035) : null;
+  var maxLev = (v!=null && cap!=null) ? money(v*cap/100) : null;
+  var apprN = num(d.appraised);
+  var basisN = (apprN!=null && apprN>0) ? apprN : v;
+  var maxQual = (basisN!=null && cap!=null) ? money(basisN*cap/100) : null;
+  var apprRow = '<div class="drow"><span>Appraised value</span><span class="ev">$<input id="ev-appraised" class="ein" inputmode="numeric" value="'+esc(d.appraised||'')+'" placeholder="enter appraisal" onchange="saveAppraised()"></span></div>';
+
+  /* 2) Taxes & insurance */
+  var taxBody =
+    '<div class="drow"><span>Property taxes <small>(est '+(taxes||'\u2014')+'/yr)</small></span><span class="ev">$<input id="ev-taxes" class="ein" inputmode="numeric" value="'+esc(d.taxesActual||'')+'" placeholder="actual"> /yr</span></div>'+
+    '<div class="drow"><span>Insurance <small>(est '+(ins||'\u2014')+'/yr)</small></span><span class="ev">$<input id="ev-ins" class="ein" inputmode="numeric" value="'+esc(d.insActual||'')+'" placeholder="actual"> /yr</span></div>'+
+    '<div class="drow"><span>HOA</span><span class="ev">$<input id="ev-hoa" class="ein" inputmode="numeric" value="'+esc(d.hoaActual||'')+'" placeholder="0"> /mo</span></div>'+
+    '<div class="dnote">Estimates shown for reference — type the real figures from the call. Saved to the deal when you tap Save &amp; re-screen.</div>';
+
+  /* 3) Rental income & DSCR */
+  var rentBody =
+    '<div class="drow"><span>Loan Amount <small>(max qualifying)</small></span><b>'+(maxQual||'—')+'</b></div>'+
+    '<div class="drow"><span>Requested loan amount'+tag('list')+'</span><b>'+esc(d.loan)+'</b></div>'+
+    (maxLev ? ('<div class="drow"><span>Max by leverage — '+esc(d.cap)+' of value'+tag('list')+'</span><b>'+maxLev+'</b></div>') : '')+
+    apprRow+
+    '<div class="drow"><span>Stated rent'+tag('list')+'</span><b>'+esc(d.rent||'not provided')+'</b></div>'+
+    '<div class="drow"><span>In-place / existing rent</span><span class="ev">$<input id="ev-erent" class="ein" inputmode="numeric" value="'+esc(d.existingRent||'')+'" placeholder="actual"> /mo</span></div>'+
+    '<div class="drow"><span>Market rent</span><span class="ev">$<input id="ev-mrent" class="ein" inputmode="numeric" value="'+esc(d.marketRent||'')+'" placeholder="market"> /mo</span></div>'+
+    marketRentLookup(d)+
+    (d.dscr ? ('<div class="drow"><span>Implied DSCR'+tag('est')+'</span><b>'+esc(d.dscr)+'</b></div>') : '')+
+    '<div class="dnote">Type the real rents from the call — they save to the deal. The DSCR badge updates on the next automated re-screen.</div>';
+
+  /* 3b) Project & exit — fix & flip / ground-up (live sizing) */
+  var projBody =
+    '<div class="drow"><span>Loan Amount <small>(max qualifying)</small></span><b>'+(maxQual||'—')+'</b></div>'+
+    '<div class="drow"><span>Requested loan amount'+tag('list')+'</span><b>'+esc(d.loan)+'</b></div>'+
+    '<div class="drow"><span>As-is value'+tag('list')+'</span><b>'+esc(d.value)+'</b></div>'+
+    apprRow+
+    '<div class="drow"><span>Exit</span><b>'+esc(exitText(d))+'</b></div>'+
+    '<div class="dh" style="margin-top:10px">Flip sizing — from the call below</div>'+
+    '<div id="flipcalc"><div class="dnote">Tap experience &amp; rehab type and enter purchase, rehab, and ARV in the call script below to size this flip.</div></div>';
+
+  /* 3c) Exit & terms — bridge / purchase / land / plain refi */
+  var exitBody =
+    '<div class="drow"><span>Loan Amount <small>(max qualifying)</small></span><b>'+(maxQual||'—')+'</b></div>'+
+    '<div class="drow"><span>Requested loan amount'+tag('list')+'</span><b>'+esc(d.loan)+'</b></div>'+
+    (maxLev ? ('<div class="drow"><span>Max by leverage — '+esc(d.cap)+' of value'+tag('list')+'</span><b>'+maxLev+'</b></div>') : '')+
+    apprRow+
+    (d.ltv!=='—' ? ('<div class="drow"><span>Leverage'+tag('est')+'</span><b>'+esc(d.ltv)+' / '+esc(d.cap)+' cap</b></div>') : '')+
+    '<div class="drow"><span>Exit</span><b>'+esc(exitText(d))+'</b></div>'+
+    (d.term ? ('<div class="drow"><span>Requested term'+tag('list')+'</span><b>'+esc(d.term)+'</b></div>') : '');
+
+  /* 4) Eligibility gates */
+  var elig = [];
+  elig.push(chk(true, 'Property type', (d.propClass||'1–4 unit residential')+' — eligible', 'list'));
+  if(acres!=null) elig.push(chk(acres<=10, 'Acreage', d.acres+(acres<=10?' — under the 10-acre line':' — large parcel, confirm lender allows'), 'list'));
+  elig.push(chk(v!=null && v>=100000, 'Min value / size', (v!=null?money(v):'—')+' — clears minimums', 'list'));
+  elig.push(chk(!twoLien, 'Lien', '1st'+(twoLien?' & 2nd — needs a mezz-capable lender':''), 'list'));
+
+  /* 5) Lender match */
+  var lm = '';
+  if(d.lenders && d.lenders.length){
+    lm += d.lenders.map(function(L){
+      return '<div class="qrow q-ok"><span class="qi">\u2713</span><div><b>'+esc(L.n)+'</b>'+(L.why?(' — '+esc(L.why)):'')+'</div></div>'; }).join('');
+  } else { lm += '<div class="dnote">No direct matches — see near-misses below.</div>'; }
+  if(d.nearMisses && d.nearMisses.length){
+    var nm = d.nearMisses.map(function(x){
+      var name = x.lender || x.n || x.name || '', why = x.why || x.reason || x.note || '';
+      if(!name) return '';
+      return '<div class="qrow q-warn"><span class="qi">\u2715</span><div><b>'+esc(name)+'</b>'+(why?(' — '+esc(why)):'')+'</div></div>';
+    }).join('');
+    if(nm) lm += '<div class="dh" style="margin-top:10px">Doesn\u2019t fit (and why)</div>'+nm;
+  }
+
+  /* 6) Must hit to qualify */
+  var must =
+    '<div class="drow"><span>Max LTV</span><b>'+esc(d.cap||'—')+'</b></div>'+
+    '<div class="drow"><span>Min FICO</span><b>~680</b></div>'+
+    '<div class="drow"><span>Min DSCR</span><b>1.00</b></div>'+
+    '<div class="drow"><span>Reserves</span><b>6 months PITIA</b></div>'+
+    '<div class="drow"><span>Property type</span><b>'+esc(d.propClass||'1–4 unit residential')+'</b></div>';
+  var mustFlip =
+    '<div class="drow"><span>Max LTARV</span><b>75% (hard ceiling)</b></div>'+
+    '<div class="drow"><span>Max LTC</span><b>85% \u2013 93% by tier</b></div>'+
+    '<div class="drow"><span>Max as-is (LTAIV)</span><b>85%</b></div>'+
+    '<div class="drow"><span>Min FICO</span><b>~680</b></div>'+
+    '<div class="drow"><span>Property type</span><b>'+esc(d.propClass||'1–4 unit residential')+'</b></div>';
+
+  /* 8) On the call */
+  var ficoChips = ['760+','720\u2013759','700\u2013719','680\u2013699','660\u2013679','640\u2013659','Below 640']
+                 .map(function(b){ return '<button class="opt" onclick="pick(this,\'fico\',\''+b+'\')">'+b+'</button>'; }).join('');
+  var call =
+    '<div class="cq">\u201CFirst off — is the place rented right now, or sitting empty?\u201D'+
+      '<div class="opts">'+
+        '<button class="opt" onclick="pick(this,\'occupancy\',\'Leased\')">Rented</button>'+
+        '<button class="opt" onclick="pick(this,\'occupancy\',\'Vacant\')">Vacant</button>'+
+        '<button class="opt" onclick="pick(this,\'occupancy\',\'Owner-occupied\')">Owner lives there</button>'+
+      '</div></div>'+
+    '<div class="cq">\u201CRoughly what\u2019s it bringing in each month?\u201D'+
+      '<input type="number" class="cin" placeholder="$ per month" oninput="CALL.monthlyRent=this.value"></div>'+
+    '<div class="cq">\u201CAnd your credit — ballpark is fine. Where are you landing?\u201D'+
+      '<div class="opts">'+ficoChips+'</div></div>'+
+    '<div class="cq">\u201CI\u2019ve penciled taxes around '+(taxes||'\u2014')+' and insurance '+(ins||'\u2014')+' a year — sound close?\u201D'+
+      '<div class="opts">'+
+        '<button class="opt" onclick="pick(this,\'taxIns\',\'about right\')">About right</button>'+
+        '<button class="opt" onclick="pick(this,\'taxIns\',\'has exact\')">I have exact numbers</button>'+
+        '<button class="opt" onclick="pick(this,\'taxIns\',\'not sure\')">Not sure</button>'+
+      '</div></div>'+
+    '<div class="cq">\u201CAny HOA dues on this one?\u201D'+
+      '<div class="opts">'+
+        '<button class="opt" onclick="pick(this,\'hoa\',\'none\')">No HOA</button>'+
+        '<button class="opt" onclick="pick(this,\'hoa\',\'yes\')">Yes (I\u2019ll get the amount)</button>'+
+      '</div></div>'+
+    '<div class="cq">\u201CHow many months of payments could you cover if needed?\u201D'+
+      '<div class="opts"><button class="opt" onclick="pick(this,\'reserves\',\'Under 3 months\')">Under 3 months</button><button class="opt" onclick="pick(this,\'reserves\',\'3\u20136 months\')">3\u20136 months</button><button class="opt" onclick="pick(this,\'reserves\',\'6+ months\')">6+ months</button></div></div>'+
+    '<div class="cq">\u201CWhen are you hoping to wrap this up?\u201D'+
+      '<div class="opts"><button class="opt" onclick="pick(this,\'timeline\',\'ASAP / under 30 days\')">ASAP / under 30 days</button><button class="opt" onclick="pick(this,\'timeline\',\'30\u201360 days\')">30\u201360 days</button><button class="opt" onclick="pick(this,\'timeline\',\'60+ days\')">60+ days</button></div></div>'+
+    '<div class="dnote">Occupancy, rent, and FICO save back to the deal and re-screen it. The rest are talking points for your call.</div>';
+
+  var flipCall =
+    '<div class="cq">\u201CHave you done flips before — roughly how many?\u201D'+
+      '<div class="opts">'+
+        '<button class="opt" onclick="pickFlip(this,\'tier\',\'Self-Starter\')">0\u20132 (Self-Starter)</button>'+
+        '<button class="opt" onclick="pickFlip(this,\'tier\',\'Plus\')">3\u20139 (Plus)</button>'+
+        '<button class="opt" onclick="pickFlip(this,\'tier\',\'Pro\')">10+ (Pro)</button>'+
+      '</div></div>'+
+    '<div class="cq">\u201CLight cosmetic, heavy/gut, or ground-up?\u201D'+
+      '<div class="opts">'+
+        '<button class="opt" onclick="pickFlip(this,\'rehabType\',\'Light\')">Light</button>'+
+        '<button class="opt" onclick="pickFlip(this,\'rehabType\',\'Heavy\')">Heavy</button>'+
+        '<button class="opt" onclick="pickFlip(this,\'rehabType\',\'Ground-Up\')">Ground-Up</button>'+
+      '</div></div>'+
+    '<div class="cq">\u201CWhat\u2019s the purchase price?\u201D'+
+      '<input type="number" class="cin" placeholder="$ purchase price" oninput="CALL.purchase=this.value;flipRecalc()"></div>'+
+    '<div class="cq">\u201CWhat\u2019s the rehab budget?\u201D'+
+      '<input type="number" class="cin" placeholder="$ rehab budget" oninput="CALL.rehabBudget=this.value;flipRecalc()"></div>'+
+    '<div class="cq">\u201CAfter-repair value — what\u2019ll it sell for, done?\u201D'+
+      '<input type="number" class="cin" placeholder="$ ARV (resale)" oninput="CALL.arv=this.value;flipRecalc()"></div>'+
+    '<div class="cq">\u201CAnd your credit — ballpark is fine. Where are you landing?\u201D'+
+      '<div class="opts">'+ficoChips+'</div></div>'+
+    '<div class="cq">\u201CWhen are you hoping to sell / wrap up?\u201D'+
+      '<div class="opts"><button class="opt" onclick="pick(this,\'timeline\',\'ASAP / under 30 days\')">ASAP / under 30 days</button><button class="opt" onclick="pick(this,\'timeline\',\'30\u201360 days\')">30\u201360 days</button><button class="opt" onclick="pick(this,\'timeline\',\'3\u20136 months\')">3\u20136 months</button><button class="opt" onclick="pick(this,\'timeline\',\'6+ months\')">6+ months</button></div></div>'+
+    '<div class="dnote">FICO saves back and re-screens. The flip figures size the deal live above (not yet saved to the sheet).</div>';
+
+  var notesCQ = '<div class="cq">Notes — anything else from the call (things not on the list):'+
+    '<textarea class="cin" id="ev-notes" placeholder="Type any extra notes here\u2026" style="min-height:64px">'+esc(d.callNotes||'')+'</textarea></div>';
+  /* ---- combined qualify table: "must hit" + "does it qualify" in one ---- */
+  function qtRow(label, mustv, st, note){
+    var ic = (st==='ok')?'\u2713':(st==='no')?'\u2715':(st==='warn')?'\u26A0':'?';
+    var cl = (st==='ok')?'s-ok':(st==='no')?'s-no':(st==='warn')?'s-warn':'s-verify';
+    return '<div class="qt-row"><div class="qt-c">'+esc(label)+'</div>'+
+           '<div class="qt-m">'+esc(mustv)+'</div>'+
+           '<div class="qt-s '+cl+'"'+(note?(' title="'+esc(note)+'"'):'')+'>'+ic+'</div></div>';
+  }
+  var qrows = '';
+  if(isRehab){
+    qrows += qtRow('Max LTARV','75% (hard ceiling)','verify','Sized with ARV on the call below');
+    qrows += qtRow('Max LTC','85% \u2013 93% by tier','verify','Sized with purchase + rehab on the call below');
+    var ltaiv = (v!=null && loanN!=null && v>0) ? (loanN/v*100) : null;
+    qrows += qtRow('Max as-is (LTAIV)','85%',
+            (ltaiv==null)?'verify':((ltaiv>85)?'no':((ltaiv>=80)?'warn':'ok')),
+            (ltaiv==null)?'Need as-is value + loan':('As-is leverage \u2248 '+Math.round(ltaiv)+'%'));
+  } else {
+    qrows += qtRow('Max LTV',(d.cap||'\u2014'),
+            (ltv==null||cap==null)?'verify':((ltv>cap+0.5)?'no':((ltv>=cap-2)?'warn':'ok')),
+            (ltv!=null&&cap!=null)?(d.ltv+' vs '+d.cap+' cap'):'Need value + loan');
+    if(isDSCR) qrows += qtRow('Min DSCR','1.00',
+            (dscrN==null)?'verify':((dscrN<1.00)?'no':((dscrN<1.10)?'warn':'ok')),
+            (dscrN==null)?'Need market rent':(d.dscr+' (estimate)'));
+  }
+  qrows += qtRow('Min FICO','680',
+          (ficoN==null)?'verify':((ficoN<680)?'no':((ficoN<700)?'warn':'ok')),
+          (ficoN==null)?'Not provided \u2014 confirm on call':(d.fico+((ficoN<700)?' \u2014 near min, soft-pull':'')));
+  qrows += qtRow('Property type','Residential 1\u20134','ok',(d.propClass||'1\u20134 unit residential')+' \u2014 eligible');
+  if(acres!=null) qrows += qtRow('Acreage','\u2264 10 acres',(acres<=10)?'ok':'warn',d.acres+((acres<=10)?'':' \u2014 large parcel, confirm lender'));
+  qrows += qtRow('Lien position','1st',twoLien?'no':'ok',(d.lien||'1st')+(twoLien?' \u2014 needs a 2nd/mezz lender':''));
+  qrows += qtRow('Occupancy','Investment / non-owner','verify','Confirm on the call');
+  qrows += qtRow('Loan size','Above $100K',
+          (loanN==null)?'verify':((loanN>=100000)?'ok':'no'),
+          (loanN==null)?'Loan amount unknown':d.loan);
+  qrows += qtRow('Loan type',(d.type||'\u2014'),'ok',(d.type||'')+' \u2014 eligible product');
+  var qtable =
+    '<div class="qt-head"><div></div><div>Must hit to qualify</div><div class="h-s">Does it qualify</div></div>'+
+    qrows+
+    '<div class="qt-leg"><b class="s-ok">\u2713</b> meets &nbsp;&middot;&nbsp; <b class="s-no">\u2715</b> not met &nbsp;&middot;&nbsp; <b class="s-warn">\u26A0</b> close to min \u2014 soft-pull to confirm &nbsp;&middot;&nbsp; <b>?</b> verify with borrower</div>';
+
+  return '<div class="dtitle">'+esc(d.type)+' \u00b7 '+esc(d.addrShort||'')+'</div>'+
+    '<div class="dsub">Key metrics & borrower call sheet — tap a heading to expand or collapse</div>'+
+    '<div class="legend"><span class="legk">Key:</span>'+tag('list')+tag('est')+(d.valueSrc==='borrower'?tag('conf'):'')+'</div>'+
+    (isDSCR
+      ? sec('\uD83C\uDFE0','Rental income & DSCR', rentBody, true)
+      : (isRehab
+          ? sec('\uD83D\uDD28','Project & exit (rehab / construction)', projBody, true)
+          : sec('\uD83C\uDFC1','Loan Details', exitBody, true)))+
+    sec('\uD83D\uDCCB','Does it qualify?', qtable, true)+
+    sec('\uD83D\uDD0E','Property details \u2014 beds / baths / sq ft & value', propDetailSection(d), true)+
+    sec('\uD83E\uDDFE','Taxes & insurance', taxBody, true)+
+    sec('\uD83D\uDCC4','Documents we\u2019ll need', docList(d), false)+
+    sec('\u260E\uFE0F','On the call — read aloud, tap to capture', (isRehab?flipCall:call)+notesCQ, false, 'call');
+}
+function autoSaveCall(){
+  if(CURRENT<0) return;
+  var d=DEALS[CURRENT];
+  var notesEl=document.getElementById('ev-notes');
+  if(notesEl) CALL.notes=notesEl.value;
+  var json=JSON.stringify(CALL);
+  d.callState=json;
+  clearTimeout(autoSaveCall._t);
+  autoSaveCall._t=setTimeout(function(){
+    google.script.run.withFailureHandler(function(){}).pipeline_saveCallState(d.id, json);
+  }, 700);
+}
+function hydrateCall_(){
+  if(CURRENT<0) return;
+  var d=DEALS[CURRENT], st;
+  try{ st = d.callState ? JSON.parse(d.callState) : null; }catch(e){ st=null; }
+  if(!st || typeof st!=='object') return;
+  CALL = st;
+  function setIn(sel,v){ var el=document.querySelector('#dBody '+sel); if(el && v!=null && v!=='') el.value=v; }
+  setIn('input[oninput*="CALL.monthlyRent"]', st.monthlyRent);
+  setIn('input[oninput*="CALL.purchase"]',    st.purchase);
+  setIn('input[oninput*="CALL.rehabBudget"]', st.rehabBudget);
+  setIn('input[oninput*="CALL.arv"]',         st.arv);
+  if(st.notes!=null){ var n=document.getElementById('ev-notes'); if(n && !n.value) n.value=st.notes; }
+  var opts=document.querySelectorAll('#dBody .opt');
+  for(var i=0;i<opts.length;i++){
+    var oc=opts[i].getAttribute('onclick')||'';
+    var m=oc.match(/pick(?:Flip)?\(this,\s*'([^']+)'\s*,\s*'([^']*)'\)/);
+    if(m && String(st[m[1]])===m[2]) opts[i].classList.add('sel');
+  }
+  flipRecalc();
+}
+/* ---------- drag the floating popup by its header ---------- */
+function makeDetailDraggable(mdl){
+  var handle = mdl.querySelector('h3');
+  if(!handle || handle.__dragInit) return;
+  handle.__dragInit = true;
+  handle.style.cursor = 'move';
+  handle.style.userSelect = 'none';
+  var dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+  handle.addEventListener('mousedown', function(e){
+    dragging = true;
+    var r = mdl.getBoundingClientRect();
+    mdl.style.position = 'fixed'; mdl.style.margin = '0';
+    mdl.style.left = r.left + 'px'; mdl.style.top = r.top + 'px';
+    sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    mdl.style.left = (ox + e.clientX - sx) + 'px';
+    mdl.style.top  = (oy + e.clientY - sy) + 'px';
+  });
+  document.addEventListener('mouseup', function(){ dragging = false; });
+}
+function dockDetail(side){
+  var mdl = document.querySelector('#doverlay .modal');
+  if(!mdl) return;
+  mdl.style.position = 'fixed';
+  mdl.style.margin = '0';
+  mdl.style.maxWidth = 'none';
+  mdl.style.pointerEvents = 'auto';
+  var vw = window.innerWidth, vh = window.innerHeight;
+  if(side === 'left'){
+    mdl.style.left = '0px'; mdl.style.top = '0px';
+    mdl.style.width = Math.round(vw/2) + 'px'; mdl.style.height = vh + 'px';
+  } else if(side === 'right'){
+    mdl.style.left = Math.round(vw/2) + 'px'; mdl.style.top = '0px';
+    mdl.style.width = Math.round(vw/2) + 'px'; mdl.style.height = vh + 'px';
+  } else {
+    var mw = Math.min(1500, Math.round(vw * 0.96));
+    mdl.style.left = Math.max(8, Math.round((vw - mw)/2)) + 'px';
+    mdl.style.top = '24px';
+    mdl.style.width = mw + 'px'; mdl.style.height = '92vh';
+  }
+}
+/* ---------- calculator prefill + lender sync (hands deal data to the popup iframe) ---------- */
+function buildCalcPayload(d){
+  function n(s){ var x=parseFloat(String(s==null?'':s).replace(/[^0-9.]/g,'')); return isNaN(x)?null:x; }
+  var cat = String(d.cat||'').toLowerCase();
+  var tab = 'dscr', loanType = '';
+  if(cat==='fixflip'){ tab='purchase'; loanType='Purchase + Rehab'; }
+  else if(cat==='groundup'){ tab='purchase'; loanType='Ground-Up Construction'; }
+  else if(cat==='bridge'){ tab='purchase'; loanType='Bridge (no rehab)'; }
+  else if(cat==='purchase'){ tab='purchase'; loanType='Purchase + Rehab'; }
+  else if(cat==='cashout' || cat==='refi'){ tab='refi'; loanType='Bridge Refi'; }
+  else if(cat==='land'){ tab='purchase'; loanType='Bridge (no rehab)'; }
+  else { tab='dscr'; }
+  var lenders = (d.lenders||[]).map(function(L){ return { name:(L.n||L.name||L.short||''), why:(L.why||'') }; }).filter(function(x){ return x.name; });
+  var dealKey = (d.sourceUrl && String(d.sourceUrl).trim()) ? String(d.sourceUrl).trim() : ('id:'+(d.id||''));
+  return {
+    prefill: {
+      cat: cat, tab: tab, loanType: loanType,
+      value: n(d.value), loan: n(d.loan), rent: n(d.rent),
+      fico: (d.fico||''), propClass: (d.propClass||''), purpose: (d.purpose||d.type||''),
+      addr: (d.addrShort||''), borrowerName: (d.borrowerName||''), borrowerEmail: (d.borrowerEmail||''),
+      house: (d.houseNum || addrHouseNum_(d.addrShort) || ''),
+      sourceUrl: (d.sourceUrl||d.workingMoniUrl||d.url||''),
+      laneOverride: (d.laneOverride||'')
+    },
+    lenders: lenders,
+    dealKey: dealKey,
+    decision: (d.decision||''),
+    flagData: {
+      acres: (d.acres||''),
+      lien: (d.lien||''),
+      propClass: (d.propClass||''),
+      cat: cat,
+      purpose: (d.purpose||''),
+      value: n(d.value),
+      propData: (d.propData||''),
+      summary: (d.summary||''),
+      exit: (d.exit||''),
+      borrowerDetails: (d.borrowerDetails||''),
+      buildingSize: (d.buildingSize||''),
+      lotSize: (d.lotSize||''),
+      occupancy: (d.occupancy||''),
+      annualIncome: (d.annualIncome||''),
+      statedType: (d.statedType||d.propClass||''),
+      statedValue: (d.value||''),
+      statedRent: (d.rent||''),
+      loanStr: (d.loan||''),
+      fico: (d.fico||''),
+      marketRent: (d.marketRent||''),
+      appraised: (d.appraised||'')
+    }
+  };
+}
+function openDetail(i){
+  CURRENT = i; CALL = {};
+  var d = DEALS[i];
+  window.__calcPayload = buildCalcPayload(d);
+  var ov = document.getElementById('doverlay');
+  if(ov){ ov.style.background = 'transparent'; ov.style.pointerEvents = 'none'; }
+  var mdl = document.querySelector('#doverlay .modal');
+  if(mdl){
+    var mw = Math.min(1500, Math.round(window.innerWidth * 0.96));
+    mdl.style.maxWidth = 'none';
+    mdl.style.width = mw + 'px';
+    mdl.style.height = '92vh';
+    mdl.style.position = 'fixed';
+    mdl.style.margin = '0';
+    mdl.style.left = Math.max(8, Math.round((window.innerWidth - mw) / 2)) + 'px';
+    mdl.style.top = '24px';
+    mdl.style.pointerEvents = 'auto';
+    mdl.style.display = 'flex';
+    mdl.style.flexDirection = 'column';
+    makeDetailDraggable(mdl);
+  }
+  var body = document.querySelector('#doverlay .modal .body');
+  if(body){ body.style.flex='1'; body.style.display='flex'; body.style.flexDirection='column'; body.style.minHeight='0'; body.style.padding='0'; }
+  var sb = document.querySelector('#doverlay .mbtns .btn:not(.ghost)'); if(sb) sb.style.display='none';
+  document.getElementById('dTitle').textContent = 'Deal calculator' + (d.addrShort ? (' \u00b7 ' + d.addrShort) : '');
+  document.getElementById('dmsg').textContent = ''; document.getElementById('dmsg').className = 'note';
+  var db = document.getElementById('dBody');
+  db.style.flex='1'; db.style.minHeight='0'; db.style.padding='0';
+  document.getElementById('doverlay').classList.add('show');
+  function showCalc(url){ db.innerHTML = '<iframe src="' + url + '" title="Deal calculator" style="display:block;width:100%;height:100%;border:0;background:#fff"></iframe>'; }
+  if(window.CALC_URL){ showCalc(window.CALC_URL); }
+  else {
+    db.innerHTML = '<div class="note" style="padding:24px;text-align:center">Loading calculator\u2026</div>';
+    google.script.run
+      .withSuccessHandler(function(url){ window.CALC_URL = url; showCalc(url); })
+      .withFailureHandler(function(err){ db.innerHTML = '<div class="note" style="color:#b23b3b;padding:20px">Could not load the calculator: ' + esc((err && err.message) ? err.message : err) + '</div>'; })
+      .Pipeline_calcUrl();
+  }
+}
+function closeDetail(){ document.getElementById('doverlay').classList.remove('show'); }
+function pick(el, key, val){
+  CALL[key] = val;
+  var p = el.parentNode;
+  [].forEach.call(p.querySelectorAll('.opt'), function(x){ x.classList.remove('sel'); });
+  el.classList.add('sel');
+  autoSaveCall();
+}
+function pickFlip(el, key, val){ pick(el, key, val); flipRecalc(); }
+function pct_(x){ return Math.round(x*100)+'%'; }
+function flipCaps_(tier, rtype){
+  var ltaiv = 0.85, ltarv, ltc;
+  if(tier==='Pro'){ ltarv = 0.75; ltc = (rtype==='Ground-Up') ? 0.90 : 0.93; }
+  else if(tier==='Plus'){ ltarv = 0.75; ltc = (rtype==='Ground-Up') ? 0.88 : 0.90; }
+  else { ltarv = 0.70; ltc = 0.85; }   // Self-Starter / default
+  return { ltarv: ltarv, ltc: ltc, ltaiv: ltaiv };
+}
+function flipRecalc(){
+  var el = document.getElementById('flipcalc'); if(!el || CURRENT < 0) return;
+  var d = DEALS[CURRENT];
+  var tier = CALL.tier || '', rtype = CALL.rehabType || '';
+  var pur = parseFloat(String(CALL.purchase||'').replace(/[^0-9.]/g,'')) || 0;
+  var reh = parseFloat(String(CALL.rehabBudget||'').replace(/[^0-9.]/g,'')) || 0;
+  var arv = parseFloat(String(CALL.arv||'').replace(/[^0-9.]/g,'')) || 0;
+  var asis = num(d.value) || 0, loanReq = num(d.loan) || 0, cost = pur + reh;
+  if(!tier || !rtype || pur <= 0 || arv <= 0){
+    el.innerHTML = '<div class="dnote">Tap experience &amp; rehab type and enter purchase price, rehab, and ARV below to size this flip. (Purchase price is needed for the cost basis.)</div>';
+    return;
+  }
+  var c = flipCaps_(tier, rtype);
+  var maxArv = arv * c.ltarv, maxLtc = cost * c.ltc, maxAsis = (asis > 0) ? asis * c.ltaiv : Infinity;
+  var approved = Math.min(maxArv, maxLtc, maxAsis);
+  var bind = (approved===maxArv) ? ('LTARV '+pct_(c.ltarv)) : ((approved===maxLtc) ? ('LTC '+pct_(c.ltc)) : ('as-is '+pct_(c.ltaiv)));
+  var sell = arv * 0.08, profit = arv - cost - sell, margin = (arv > 0) ? (profit/arv) : 0;
+  var fits = (loanReq > 0) ? (loanReq <= approved + 1) : null;
+  el.innerHTML =
+    '<div class="drow"><span>Total cost (purchase + rehab)</span><b>'+money(cost)+'</b></div>'+
+    '<div class="drow"><span>Max by LTARV ('+pct_(c.ltarv)+' of ARV)</span><b>'+money(maxArv)+'</b></div>'+
+    '<div class="drow"><span>Max by LTC ('+pct_(c.ltc)+' of cost)</span><b>'+money(maxLtc)+'</b></div>'+
+    ((asis > 0) ? ('<div class="drow"><span>Max by as-is ('+pct_(c.ltaiv)+')</span><b>'+money(maxAsis)+'</b></div>') : '')+
+    '<div class="drow"><span><b>Approved loan</b></span><b>'+money(approved)+' \u00b7 '+bind+' binds</b></div>'+
+    ((fits!==null) ? ('<div class="qrow '+(fits?'q-ok':'q-warn')+'"><span class="qi">'+(fits?'\u2713':'\u26A0')+'</span><div>Requested '+money(loanReq)+(fits?' \u2014 fits within approved':' \u2014 exceeds approved by '+money(loanReq-approved))+'</div></div>') : '')+
+    '<div class="drow"><span>Projected profit (rough)</span><b>'+money(profit)+' \u00b7 '+Math.round(margin*100)+'% of ARV</b></div>'+
+    '<div class="dnote">Profit nets ~8% selling costs; excludes financing/holding. As-is uses the listing value. Tier caps applied (LTARV ceiling 75%).</div>';
+}
+function valOf_(id){ var e=document.getElementById(id); return e ? String(e.value||'').trim() : ''; }
+function saveCall(){
+  if(CURRENT < 0) return;
+  var d = DEALS[CURRENT];
+  var msg = document.getElementById('dmsg'); msg.className='note'; msg.textContent = 'Saving…';
+  var extras = {
+    notes: valOf_('ev-notes'), customDocs: DOCS.join('\n'),
+    taxes: valOf_('ev-taxes'), insurance: valOf_('ev-ins'), hoa: valOf_('ev-hoa'),
+    existingRent: valOf_('ev-erent'), marketRent: valOf_('ev-mrent')
+  };
+  d.callNotes=extras.notes; d.taxesActual=extras.taxes; d.insActual=extras.insurance;
+  d.hoaActual=extras.hoa; d.existingRent=extras.existingRent; d.marketRent=extras.marketRent; d.customDocs=extras.customDocs;
+  google.script.run
+    .withSuccessHandler(function(){ saveCall_rescreen_(d, msg); })
+    .withFailureHandler(function(err){ msg.textContent = 'Error saving figures/notes: ' + err.message; })
+    .pipeline_saveCallExtras(d.id, extras);
+}
+function saveCall_rescreen_(d, msg){
+  msg.textContent = 'Saving & re-screening…';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        msg.innerHTML = '<span class="ok">Saved &amp; re-screened ✓ — now ' + esc(res.decision||'') + '</span>';
+        if(res.deal){
+          if(res.deal.decision==='FAIL'){ DEALS.splice(CURRENT,1); render(); setTimeout(closeDetail, 900); }
+          else {
+            var c=res.deal;
+            c.callNotes=d.callNotes; c.taxesActual=d.taxesActual; c.insActual=d.insActual;
+            c.hoaActual=d.hoaActual; c.existingRent=d.existingRent; c.marketRent=d.marketRent; c.customDocs=d.customDocs;
+            DEALS[CURRENT]=c; render();
+          }
+        } else { load(); }
+      } else { msg.textContent = (res && res.error) ? res.error : 'Save failed.'; }
+    })
+    .withFailureHandler(function(err){ msg.textContent = 'Error: ' + err.message; })
+    .pipeline_saveCallSheet(d.id, CALL);
+}
+
+/* ---------- upload WorkingMoni .xlsx ---------- */
+function onFile(input){
+  var f = input.files[0]; if(!f) return;
+  var s = document.getElementById('upmsg'); s.className='note'; s.textContent = 'Reading file…';
+  var reader = new FileReader();
+  reader.onload = function(){
+    var b64 = String(reader.result).split(',')[1];
+    s.textContent = 'Uploading & importing… (can take ~20s for a big scrape)';
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(res && res.ok){
+          var _p=['Imported '+res.imported+' new']; if(res.updated) _p.push('updated '+res.updated+' existing'); if(res.skipped) _p.push('skipped '+res.skipped+' unchanged'); s.innerHTML = '<span class="ok">'+_p.join(' · ')+' ✓</span>';
+          load();
+        } else { s.textContent = (res && res.error) ? res.error : 'Upload failed.'; }
+      })
+      .withFailureHandler(function(err){ s.textContent = 'Error: ' + err.message; })
+      .pipeline_uploadDeals(b64, f.name);
+  };
+  reader.onerror = function(){ s.textContent = 'Could not read that file.'; };
+  reader.readAsDataURL(f);
+  input.value = '';   // let the same file be re-picked later
+}
+
+/* ---------- archive (remove) ---------- */
+function openArchive(i){
+  ARCH_I = i; var d = DEALS[i];
+  document.getElementById('aName').textContent = d.type + ' · ' + (d.addrShort || '');
+  document.getElementById('amsg').textContent = '';
+  document.getElementById('aoverlay').classList.add('show');
+}
+function closeArchive(){ document.getElementById('aoverlay').classList.remove('show'); }
+function archiveDeal(reason){
+  if(ARCH_I < 0) return;
+  var d = DEALS[ARCH_I], m = document.getElementById('amsg'); m.className='note'; m.style.color=''; m.textContent = 'Archiving…';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        m.innerHTML = '<span class="ok">Archived ✓</span>';
+        DEALS.splice(ARCH_I,1); render();
+        setTimeout(closeArchive, 700);
+      } else {
+        m.style.color='#b23b3b';
+        m.textContent = (res && res.error) ? ('Failed: ' + res.error) : 'Could not archive (no response from server).';
+      }
+    })
+    .withFailureHandler(function(err){ m.style.color='#b23b3b'; m.textContent = 'Error: ' + ((err && err.message) ? err.message : err); })
+    .pipeline_archiveDeal(d.id, reason);
+}
+
+function openArchived(){
+  document.getElementById('arcmsg').textContent = '';
+  document.getElementById('arcList').innerHTML = 'Loading…';
+  document.getElementById('arcoverlay').classList.add('show');
+  google.script.run
+    .withSuccessHandler(renderArchived)
+    .withFailureHandler(function(err){ document.getElementById('arcList').innerHTML = '<div class="note" style="color:#b23b3b">Error: ' + esc((err&&err.message)?err.message:err) + '</div>'; })
+    .pipeline_getArchived();
+}
+function closeArchived(){ document.getElementById('arcoverlay').classList.remove('show'); }
+function renderArchived(res){
+  var box = document.getElementById('arcList');
+  if(!res || !res.ok){ box.innerHTML = '<div class="note" style="color:#b23b3b">Could not load: ' + esc(res&&res.error?res.error:'no response') + '</div>'; return; }
+  var d = res.deals || [];
+  if(!d.length){ box.innerHTML = '<div class="note">No archived deals yet.</div>'; return; }
+  box.innerHTML = d.map(function(x){
+    var sub = [x.reason, x.archived ? ('archived ' + x.archived) : ''].filter(function(s){return s;}).join(' · ');
+    return '<div class="arcrow" data-id="'+esc(x.id)+'">' +
+      '<div style="min-width:0"><div style="font-weight:600">'+esc(x.type)+' · '+esc(x.addrShort||'—')+'</div>' +
+      '<div class="note">'+esc(sub)+'</div></div>' +
+      '<button class="btn ghost" onclick="unarchiveDeal(this,\''+esc(x.id)+'\')">Un-archive</button></div>';
+  }).join('');
+}
+function unarchiveDeal(btn, id){
+  btn.disabled = true; btn.textContent = 'Un-archiving…';
+  var m = document.getElementById('arcmsg'); m.style.color=''; m.textContent='';
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        var row = btn.closest('.arcrow'); if(row) row.remove();
+        m.innerHTML = '<span class="ok">Sent back to the board ✓</span>';
+        load();
+        if(!document.querySelectorAll('#arcList .arcrow').length){ document.getElementById('arcList').innerHTML = '<div class="note">No archived deals yet.</div>'; }
+      } else {
+        btn.disabled = false; btn.textContent = 'Un-archive';
+        m.style.color='#b23b3b'; m.textContent = 'Failed: ' + (res&&res.error?res.error:'no response');
+      }
+    })
+    .withFailureHandler(function(err){ btn.disabled=false; btn.textContent='Un-archive'; m.style.color='#b23b3b'; m.textContent='Error: ' + ((err&&err.message)?err.message:err); })
+    .pipeline_unarchiveDeal(id);
+}
+
+/* ---------- outreach log: toggle, log, edit, delete, export ---------- */
+function resolveDealOutreach(d){
+  try { return d.outreachLog ? JSON.parse(d.outreachLog) : {calls:0, emails:0, entries:[]}; }
+  catch(e) { return {calls:0, emails:0, entries:[]}; }
+}
+function updateOutreachCounts(i){
+  var d = DEALS[i], ol = resolveDealOutreach(d);
+  var cnt = document.getElementById('ot-counts-'+i);
+  if(cnt) cnt.textContent = '📞 '+ol.calls+'/2 · ✉ '+ol.emails+'/2';
+  updateDripChip(i);
+}
+function updateDripChip(i){
+  var d = DEALS[i], ol = resolveDealOutreach(d);
+  var chip = document.getElementById('ot-drip-'+i);
+  if(chip) chip.style.display = (ol.calls>=2 && ol.emails>=2) ? '' : 'none';
+}
+function toggleOutreachLog(i){
+  var hist = document.getElementById('ot-hist-'+i), chev = document.getElementById('ot-chev-'+i);
+  if(!hist) return;
+  var open = hist.classList.toggle('ot-hist-closed');
+  hist.style.maxHeight = open ? '0' : '600px';
+  if(chev) chev.textContent = open ? '▶' : '▼';
+}
+function toggleOutreachMenu(i){
+  var pop = document.getElementById('ot-pop-'+i);
+  if(!pop) return;
+  pop.style.display = (pop.style.display==='none' || !pop.style.display) ? 'block' : 'none';
+}
+function logOutreach(i, type){
+  if(i<0 || i>=DEALS.length) return;
+  var d = DEALS[i];
+  var ol = resolveDealOutreach(d);
+  if(!ol.entries) ol.entries = [];
+  var now = new Date();
+  var dateStr = (now.getMonth()+1)+'/'+now.getDate()+', '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  var icon = (type==='call') ? '📞' : '✉';
+  ol.entries.push({type:type, date:dateStr, note:''});
+  if(type==='call') ol.calls++; else ol.emails++;
+  d.outreachLog = JSON.stringify(ol);
+  renderOutreachLog(i);
+  updateOutreachCounts(i);
+  toggleOutreachMenu(i);
+  google.script.run.withFailureHandler(function(){}).pipeline_saveOutreachLog(d.id, d.outreachLog);
+}
+function renderOutreachLog(i){
+  var d = DEALS[i], ol = resolveDealOutreach(d);
+  var list = document.getElementById('ot-list-'+i);
+  if(!list) return;
+  if(!ol.entries || !ol.entries.length) { list.innerHTML = '<div style="color:var(--muted);font-style:italic">No outreach logged yet</div>'; return; }
+  list.innerHTML = ol.entries.map(function(e, idx){
+    var icon = (e.type==='call') ? '📞' : '✉';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;margin-bottom:4px" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'+
+      '<span style="flex:none;min-width:124px;color:var(--muted)">'+icon+' '+esc(e.date)+'</span>'+
+      '<span style="flex:1;font-style:italic;color:var(--muted);cursor:pointer" onclick="editOutreachNote('+i+','+idx+')" title="Click to edit">'+(e.note?esc(e.note):'<span style="opacity:.6">tap to add note</span>')+'</span>'+
+      '<button style="flex:none;background:0;border:0;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;opacity:0" onmouseover="this.style.opacity=\'1\'" onmouseout="this.style.opacity=\'0\'" onclick="deleteOutreachEntry('+i+','+idx+')">×</button>'+
+    '</div>';
+  }).join('');
+}
+function editOutreachNote(i, idx){
+  if(i<0 || i>=DEALS.length) return;
+  var d = DEALS[i], ol = resolveDealOutreach(d);
+  if(idx<0 || idx>=ol.entries.length) return;
+  var e = ol.entries[idx];
+  var cur = e.note || '';
+  var list = document.getElementById('ot-list-'+i);
+  if(!list) return;
+  var entries = list.querySelectorAll('[onclick*="editOutreachNote"]');
+  if(idx>=entries.length) return;
+  var noteSpan = entries[idx];
+  if(!noteSpan) return;
+  var inp = document.createElement('input');
+  inp.className = 'cin';
+  inp.style.width = '100%';
+  inp.style.padding = '4px 6px';
+  inp.style.fontSize = '11.5px';
+  inp.value = cur;
+  inp.placeholder = 'add a note';
+  noteSpan.replaceWith(inp);
+  inp.focus();
+  function save(){
+    var v = inp.value.trim();
+    ol.entries[idx].note = v;
+    d.outreachLog = JSON.stringify(ol);
+    renderOutreachLog(i);
+    google.script.run.withFailureHandler(function(){}).pipeline_saveOutreachLog(d.id, d.outreachLog);
+  }
+  function restore(){ inp.replaceWith(noteSpan); }
+  inp.addEventListener('blur', save);
+  inp.addEventListener('keydown', function(ev){
+    if(ev.key==='Enter'){ inp.blur(); }
+    if(ev.key==='Escape'){ restore(); }
+  });
+}
+function deleteOutreachEntry(i, idx){
+  if(i<0 || i>=DEALS.length) return;
+  var d = DEALS[i], ol = resolveDealOutreach(d);
+  if(idx<0 || idx>=ol.entries.length) return;
+  var e = ol.entries[idx];
+  if(e.type==='call') ol.calls--; else ol.emails--;
+  ol.entries.splice(idx, 1);
+  d.outreachLog = JSON.stringify(ol);
+  renderOutreachLog(i);
+  updateOutreachCounts(i);
+  google.script.run.withFailureHandler(function(){}).pipeline_saveOutreachLog(d.id, d.outreachLog);
+}
+function exportDripCSV(){
+  if(FILTER!=='drip') return;
+  var ol = DEALS.filter(function(d){ var o=resolveDealOutreach(d); return o.calls>=2 && o.emails>=2; });
+  if(!ol.length){ alert('No deals in the drip list.'); return; }
+  var csv = [], header = ['House #', 'Borrower', 'Email', 'Phone', 'Address', 'Loan', 'Value', 'LTV', 'FICO', 'Property Type', 'Lien', 'Decision', 'Calls', 'Emails', 'Last Contacted', 'Outreach History'];
+  csv.push(header.map(function(h){ return '"'+h.replace(/"/g,'""')+'"'; }).join(','));
+  ol.forEach(function(d){
+    var outlog = resolveDealOutreach(d), lastDate = outlog.entries && outlog.entries.length ? outlog.entries[outlog.entries.length-1].date : '';
+    var hist = outlog.entries ? outlog.entries.map(function(e){ return (e.type==='call'?'☎':'📧')+' '+e.date+(e.note?' — '+e.note:''); }).join('; ') : '';
+    var row = [
+      d.houseNum || '', d.borrowerName || '', d.borrowerEmail || '', d.borrowerPhone || '', d.addrShort || '', d.loan || '', d.value || '', d.ltv || '', d.fico || '', d.propClass || '', d.lien || '', d.decision || '', outlog.calls||0, outlog.emails||0, lastDate, hist
+    ];
+    csv.push(row.map(function(v){ return '"'+String(v||'').replace(/"/g,'""')+'"'; }).join(','));
+  });
+  var blob = new Blob([csv.join('\n')], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'asap-drip-campaign-'+(new Date().toISOString().split('T')[0])+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  var msg = prompt('Export complete! What next?\n\n[A] Archive these leads\n[D] Delete permanently\n[K] Keep visible\n\nEnter A, D, or K:', 'A');
+  if(msg && msg.toUpperCase()==='A'){ for(var i=0;i<ol.length;i++){ ol[i]._exported=true; } load(); }
+  else if(msg && msg.toUpperCase()==='D'){ for(var i=0;i<ol.length;i++){ var idx=DEALS.indexOf(ol[i]); if(idx>=0) archiveDeal('Exported to drip'); } }
+}
+
+function pickEdit(el, key, val){
+  EDIT[key] = val;
+  var p = el.parentNode;
+  [].forEach.call(p.querySelectorAll('.opt'), function(x){ x.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+function chipsRow(key, opts, cur){
+  return '<div class="opts">' + opts.map(function(o){
+    var sel = (String(cur)===String(o)) ? ' sel' : '';
+    return '<button class="opt'+sel+'" onclick="pickEdit(this,\''+key+'\',\''+o.replace(/'/g,"\\'")+'\')">'+esc(o)+'</button>';
+  }).join('') + '</div>';
+}
+function openEdit(i){
+  EDIT_I = i; EDIT = {};
+  var d = DEALS[i];
+  document.getElementById('emsg').textContent = '';
+  document.getElementById('eBody').innerHTML = '<div class="note">Loading…</div>';
+  document.getElementById('eoverlay').classList.add('show');
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.ok){ document.getElementById('eBody').innerHTML = '<div class="note" style="color:#b23b3b">Could not load: '+esc(res&&res.error?res.error:'no response')+'</div>'; return; }
+      renderEditForm(res.fields || {});
+    })
+    .withFailureHandler(function(err){ document.getElementById('eBody').innerHTML = '<div class="note" style="color:#b23b3b">Error: '+esc((err&&err.message)?err.message:err)+'</div>'; })
+    .pipeline_getDealFields(d.id);
+}
+function closeEdit(){ document.getElementById('eoverlay').classList.remove('show'); }
+function renderEditForm(f){
+  EDIT = { loanType: f.loanType||'', propertyType: f.propertyType||'' };
+  var LT = ['Purchase','Refinance','Cash-Out Refinance','Bridge','Fix & Flip','Ground-Up Construction','Rental / DSCR','Land'];
+  var PT = ['Single-family (1-4 units)','Condo / townhome','Multifamily (5+ units)','Mixed-use','Commercial','Land','Other'];
+  document.getElementById('eBody').innerHTML =
+    '<label class="elbl">Loan type</label>' + chipsRow('loanType', LT, f.loanType) +
+    '<label class="elbl">Property type</label>' + chipsRow('propertyType', PT, f.propertyType) +
+    '<div class="egrid">' +
+      '<div><label class="elbl">Loan amount</label><input id="e-amt" type="number" inputmode="numeric" value="'+esc(f.loanAmount||'')+'"></div>' +
+      '<div><label class="elbl">As-is value (ARV for flips)</label><input id="e-val" type="number" inputmode="numeric" value="'+esc(f.marketValue||'')+'"></div>' +
+    '</div>' +
+    '<label class="elbl">Property address</label><input id="e-addr" value="'+esc(f.propertyAddress||'')+'">' +
+    '<div class="egrid">' +
+      '<div><label class="elbl">Borrower name</label><input id="e-name" value="'+esc(f.borrowerName||'')+'"></div>' +
+      '<div><label class="elbl">Borrower email</label><input id="e-email" value="'+esc(f.borrowerEmail||'')+'"></div>' +
+    '</div>';
+}
+function saveEdit(){
+  if(EDIT_I < 0) return;
+  var d = DEALS[EDIT_I], m = document.getElementById('emsg'); m.style.color=''; m.textContent='Saving…';
+  function v(id){ var el=document.getElementById(id); return el?el.value:''; }
+  var fields = {
+    loanType:        EDIT.loanType || '',
+    propertyType:    EDIT.propertyType || '',
+    loanAmount:      v('e-amt'),
+    marketValue:     v('e-val'),
+    propertyAddress: v('e-addr'),
+    borrowerName:    v('e-name'),
+    borrowerEmail:   v('e-email')
+  };
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.ok){
+        m.innerHTML = '<span class="ok">Saved \u2713 re-screened'+(res.decision?(' \u00b7 '+esc(res.decision)):'')+'</span>';
+        load();
+        setTimeout(closeEdit, 800);
+      } else {
+        m.style.color='#b23b3b'; m.textContent = 'Failed: ' + (res&&res.error?res.error:'no response');
+      }
+    })
+    .withFailureHandler(function(err){ m.style.color='#b23b3b'; m.textContent = 'Error: ' + ((err&&err.message)?err.message:err); })
+    .pipeline_saveDealEdits(d.id, fields);
+}
+
+load();
+google.script.run.withSuccessHandler(function(u){ window.CALC_URL = u || ''; }).Pipeline_calcUrl();
+
+/* reply to the calculator iframe: ready -> init payload; load -> saved inputs; save -> persist */
+window.addEventListener('message', function(ev){
+  var m = ev.data;
+  if(!m || !m.type) return;
+  if(m.type === 'asap-calc-ready'){
+    if(ev.source && window.__calcPayload){
+      try { ev.source.postMessage({ type:'asap-calc-init', payload: window.__calcPayload }, '*'); } catch(e){}
+    }
+  } else if(m.type === 'asap-calc-load'){
+    var src = ev.source, key = String(m.dealKey || '');
+    if(!key){ try { src.postMessage({ type:'asap-calc-restore', json:'' }, '*'); } catch(e){} return; }
+    try {
+      google.script.run
+        .withSuccessHandler(function(json){ try { src.postMessage({ type:'asap-calc-restore', json: json || '' }, '*'); } catch(e){} })
+        .withFailureHandler(function(){ try { src.postMessage({ type:'asap-calc-restore', json:'' }, '*'); } catch(e){} })
+        .Pipeline_getCalcInputs(key);
+    } catch(e){ try { src.postMessage({ type:'asap-calc-restore', json:'' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-save'){
+    var key2 = String(m.dealKey || '');
+    if(!key2) return;
+    try {
+      google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).Pipeline_saveCalcInputs(key2, m.json || '');
+    } catch(e){}
+  } else if(m.type === 'asap-calc-regrade'){
+    var src3 = ev.source, key3 = String(m.dealKey || ''), cf = m.fields || {};
+    var deal = resolveDealByKey(key3);
+    if(!deal){ try { src3.postMessage({ type:'asap-calc-regraded', ok:false, error:'deal not found' }, '*'); } catch(e){} return; }
+    function pick(a, b){ return (a !== undefined && a !== null && String(a) !== '') ? a : (b || ''); }
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){
+          if(!res || !res.ok){ try { src3.postMessage({ type:'asap-calc-regraded', ok:false, error:(res&&res.error)||'could not load deal' }, '*'); } catch(e){} return; }
+          var cur = res.fields || {};
+          var merged = {
+            loanType:        cur.loanType || '',
+            propertyType:    cur.propertyType || '',
+            loanAmount:      pick(cf.loanAmount, cur.loanAmount),
+            marketValue:     pick(cf.marketValue, cur.marketValue),
+            propertyAddress: pick(cf.propertyAddress, cur.propertyAddress),
+            borrowerName:    pick(cf.borrowerName, cur.borrowerName),
+            borrowerEmail:   pick(cf.borrowerEmail, cur.borrowerEmail)
+          };
+          google.script.run
+            .withSuccessHandler(function(r2){
+              if(r2 && r2.ok){
+                var dec=(r2.decision||'');
+                function finishRG(){ try { load(); } catch(e){} try { src3.postMessage({ type:'asap-calc-regraded', ok:true, decision:dec }, '*'); } catch(e){} }
+                var bf={ house:String(cf.houseNumber||'').trim(), name:String(cf.borrowerName||'').trim(), email:String(cf.borrowerEmail||'').trim() };
+                if(bf.house || bf.name || bf.email){ try { google.script.run.withSuccessHandler(function(){ finishRG(); }).withFailureHandler(function(){ finishRG(); }).pipeline_saveDealFields(deal.id, bf); } catch(e){ finishRG(); } }
+                else { finishRG(); }
+              }
+              else { try { src3.postMessage({ type:'asap-calc-regraded', ok:false, error:(r2&&r2.error)||'re-screen failed' }, '*'); } catch(e){} }
+            })
+            .withFailureHandler(function(err){ try { src3.postMessage({ type:'asap-calc-regraded', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+            .pipeline_saveDealEdits(deal.id, merged);
+        })
+        .withFailureHandler(function(err){ try { src3.postMessage({ type:'asap-calc-regraded', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_getDealFields(deal.id);
+    } catch(e){ try { src3.postMessage({ type:'asap-calc-regraded', ok:false, error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-readnotes'){
+    var src4 = ev.source, notes4 = String(m.notes || ''), ctx4 = String(m.context || '');
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){ try { src4.postMessage({ type:'asap-calc-notesflags', ok:!!(res&&res.ok), flags:(res&&res.flags)||[], error:(res&&res.error)||'' }, '*'); } catch(e){} })
+        .withFailureHandler(function(err){ try { src4.postMessage({ type:'asap-calc-notesflags', ok:false, flags:[], error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_analyzeNoteFlags(notes4, ctx4);
+    } catch(e){ try { src4.postMessage({ type:'asap-calc-notesflags', ok:false, flags:[], error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-readtitle'){
+    var src5 = ev.source, pdf5 = String(m.pdf || ''), mime5 = String(m.mime || 'application/pdf'), ctx5 = String(m.context || '');
+    if(!pdf5){ try { src5.postMessage({ type:'asap-calc-titleflags', ok:false, flags:[], error:'no_file' }, '*'); } catch(e){} return; }
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){ try { src5.postMessage({ type:'asap-calc-titleflags', ok:!!(res&&res.ok), flags:(res&&res.flags)||[], error:(res&&res.error)||'' }, '*'); } catch(e){} })
+        .withFailureHandler(function(err){ try { src5.postMessage({ type:'asap-calc-titleflags', ok:false, flags:[], error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_analyzeTitlePdf(pdf5, mime5, ctx5);
+    } catch(e){ try { src5.postMessage({ type:'asap-calc-titleflags', ok:false, flags:[], error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-getdealq'){
+    var src6 = ev.source, key6 = String(m.dealKey || '');
+    var deal6 = resolveDealByKey(key6);
+    if(!deal6){ try { src6.postMessage({ type:'asap-calc-dealq', ok:false, error:'deal not found' }, '*'); } catch(e){} return; }
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){ try { src6.postMessage({ type:'asap-calc-dealq', ok:!!(res&&res.ok), body:(res&&res.body)||'', subject:(res&&res.subject)||'', error:(res&&res.error)||'' }, '*'); } catch(e){} })
+        .withFailureHandler(function(err){ try { src6.postMessage({ type:'asap-calc-dealq', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_buildDealQuestions(deal6.id);
+    } catch(e){ try { src6.postMessage({ type:'asap-calc-dealq', ok:false, error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-condensefacts'){
+    var srcCF = ev.source, sigCF = String(m.sig || '');
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){ try { srcCF.postMessage({ type:'asap-calc-factsbullets', ok:!!(res&&res.ok), bullets:((res&&res.bullets)||[]), sig:sigCF, error:(res&&res.error)||'' }, '*'); } catch(e){} })
+        .withFailureHandler(function(err){ try { srcCF.postMessage({ type:'asap-calc-factsbullets', ok:false, bullets:[], sig:sigCF, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_condenseDealFacts(String(m.facts || '{}'));
+    } catch(e){ try { srcCF.postMessage({ type:'asap-calc-factsbullets', ok:false, bullets:[], sig:sigCF, error:'error' }, '*'); } catch(_){} }
+    return;
+  } else if(m.type === 'asap-open-pitch'){
+    var kp=String(m.dealKey||''), idxp=-1;
+    for(var pi=0; pi<DEALS.length; pi++){ var dp=DEALS[pi]; var dkp=(dp.sourceUrl && String(dp.sourceUrl).trim())?String(dp.sourceUrl).trim():('id:'+(dp.id||'')); if(dkp===kp){ idxp=pi; break; } }
+    if(idxp>=0){ var psnap=null; try{ psnap=m.calcSnapshot?JSON.parse(m.calcSnapshot):null; }catch(e){} try{ openPitch(idxp, psnap); }catch(e){} }
+  } else if(m.type === 'asap-calc-emailq'){
+    var src7 = ev.source, key7 = String(m.dealKey || ''), qjson7 = String(m.questions || '[]');
+    var idx7 = -1;
+    for(var qi=0; qi<DEALS.length; qi++){ var dq=DEALS[qi]; var dkq=(dq.sourceUrl && String(dq.sourceUrl).trim())?String(dq.sourceUrl).trim():('id:'+(dq.id||'')); if(dkq===key7){ idx7=qi; break; } }
+    if(idx7<0){ try { src7.postMessage({ type:'asap-calc-emailq', ok:false, error:'deal not found' }, '*'); } catch(e){} return; }
+    var d7 = DEALS[idx7];
+    var be7 = String(m.borrowerEmail || '').trim();
+    if(!be7){ var ef7 = document.getElementById('email-'+idx7); be7 = (ef7 && ef7.value.trim()) ? ef7.value.trim() : (d7.borrowerEmail || ''); }
+    if(!be7){ try { src7.postMessage({ type:'asap-calc-emailq', ok:false, error:'Enter a borrower email in the calculator (top bar) first.' }, '*'); } catch(e){} return; }
+    var bf7 = { house:String(m.house||'').trim(), name:String(m.name||'').trim(), email:be7 };
+    function buildEmail7(){
+      try {
+        var sc7 = d7.screen || {};
+        var ctx7 = {
+          property: d7.addrShort||'',
+          borrowerStated: { value:d7.value||'', rent:d7.rent||'', loan:d7.loan||'', fico:d7.fico||'', propertyType:d7.propClass||'', lien:d7.lien||'', acres:d7.acres||'', purpose:d7.type||'', exit:d7.exit||'', ltv:d7.ltv||'', dscr:d7.dscr||'', collateralSummary:d7.summary||'', borrowerBackground:d7.borrowerDetails||'' },
+          ourData: { marketRent:d7.marketRent||'', asIsValue:d7.appraised||'', propertyProfile:(d7.propData!=null?d7.propData:null) },
+          screen: { decision:(sc7.column||d7.column||''), killers:(sc7.killers||[]), watchouts:(sc7.watchouts||d7.watchouts||[]), missing:(sc7.missing||[]), metrics:(sc7.metrics||{}) },
+          flagsRaised: (function(){ try{ return JSON.parse(m.flags||'[]'); }catch(e){ return []; } })(),
+          loanOfficerWorkingNumbers: (function(){ try{ return JSON.parse(m.calcCtx||'{}'); }catch(e){ return (m.calcCtx||''); } })(),
+          kind: (function(){ try{ return String((JSON.parse(m.calcCtx||'{}')||{}).kind||''); }catch(e){ return ''; } })(),
+          docsNeeded: (function(){ try{ return (JSON.parse(m.calcCtx||'{}')||{}).docsNeeded||[]; }catch(e){ return []; } })(),
+          documentFindings: (function(){ try{ return (JSON.parse(m.calcCtx||'{}')||{}).documentFindings||[]; }catch(e){ return []; } })()
+        };
+        google.script.run
+          .withSuccessHandler(function(res){
+            if(res && res.ok){
+              try { src7.postMessage({ type:'asap-calc-emailq', ok:true, emailBody:((res&&res.body)||'') }, '*'); } catch(e){}
+              Q_I = idx7; Q_SENDER = 'daniel';
+              try { openQ(res); } catch(e){}
+            } else {
+              try { src7.postMessage({ type:'asap-calc-emailq', ok:false, error:(res&&res.error)||'could not build the email' }, '*'); } catch(e){}
+            }
+          })
+          .withFailureHandler(function(err){ try { src7.postMessage({ type:'asap-calc-emailq', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+          .pipeline_buildBorrowerQuestionEmail(bf7.name||d7.borrowerName||'', be7, d7.addrShort||'', qjson7, JSON.stringify(ctx7));
+      } catch(e){ try { src7.postMessage({ type:'asap-calc-emailq', ok:false, error:'error' }, '*'); } catch(_){} }
+    }
+    // ensure the deal record has the email (Draft/Send derives the recipient from it) + update the card, then build
+    try {
+      google.script.run
+        .withSuccessHandler(function(sf){
+          if(sf && sf.ok){
+            d7.ready=sf.ready; if(sf.fullAddress) d7.addrShort=sf.fullAddress;
+            d7.houseNum=bf7.house; d7.borrowerName=bf7.name; d7.borrowerEmail=be7;
+            var hEl=document.getElementById('house-'+idx7); if(hEl) hEl.value=bf7.house;
+            var nEl=document.getElementById('name-'+idx7);  if(nEl) nEl.value=bf7.name;
+            var eEl=document.getElementById('email-'+idx7); if(eEl) eEl.value=be7;
+            var n=(sf.ready&&sf.ready.house?1:0)+(sf.ready&&sf.ready.name?1:0)+(sf.ready&&sf.ready.email?1:0);
+            var cnt=document.getElementById('cnt-'+idx7); if(cnt) cnt.textContent=n+' of 3';
+          }
+          buildEmail7();
+        })
+        .withFailureHandler(function(){ buildEmail7(); })
+        .pipeline_saveDealFields(d7.id, bf7);
+    } catch(e){ buildEmail7(); }
+  } else if(m.type === 'asap-calc-laneapplied'){
+    var dealLA = resolveDealByKey(String(m.dealKey || ''));
+    if(dealLA){ dealLA.laneOverride = String(m.lane || '').toLowerCase(); try { render(); } catch(e){} }
+  } else if(m.type === 'asap-calc-setlane'){
+    var srcSL = ev.source, keySL = String(m.dealKey || ''), laneSL = String(m.lane || '');
+    var dealSL = resolveDealByKey(keySL);
+    if(!dealSL){ try { srcSL.postMessage({ type:'asap-calc-laneset', ok:false, error:'deal not found' }, '*'); } catch(e){} return; }
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){
+          if(res && res.ok){ dealSL.laneOverride = res.lane; try { render(); } catch(e){} }
+          try { srcSL.postMessage({ type:'asap-calc-laneset', ok:!!(res&&res.ok), lane:(res&&res.lane)||'', error:(res&&res.error)||'' }, '*'); } catch(e){}
+        })
+        .withFailureHandler(function(err){ try { srcSL.postMessage({ type:'asap-calc-laneset', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_setLaneOverride(dealSL.id, laneSL);
+    } catch(e){ try { srcSL.postMessage({ type:'asap-calc-laneset', ok:false, error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-lookupprop'){
+    console.log('ASAP: lookupprop received, address=', m.address);
+    var srcLP = ev.source, addrLP = String(m.address || ''), keyLP = String(m.dealKey || '');
+    if(!addrLP){ try { srcLP.postMessage({ type:'asap-calc-propresult', ok:false, error:'no_address' }, '*'); } catch(e){} return; }
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){
+          var msgLP = res || { ok:false }; msgLP.type = 'asap-calc-propresult';
+          try { srcLP.postMessage(msgLP, '*'); } catch(e){}
+          try { var dLP = resolveDealByKey(keyLP); if(dLP && res && res.ok){ var pLP={beds:res.beds,baths:res.baths,sqft:res.sqft,yearBuilt:res.yearBuilt,lotSize:res.lotSize,propertyType:res.propertyType,value:res.value,low:res.low,high:res.high,lastSalePrice:res.lastSalePrice,lastSaleDate:res.lastSaleDate,recordFound:res.recordFound}; dLP.propData=JSON.stringify(pLP); google.script.run.pipeline_savePropData(dLP.id, pLP); } } catch(e){}
+        })
+        .withFailureHandler(function(err){ try { srcLP.postMessage({ type:'asap-calc-propresult', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_lookupProperty(addrLP);
+    } catch(e){ try { srcLP.postMessage({ type:'asap-calc-propresult', ok:false, error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-estrent'){
+    var srcER = ev.source, addrER = String(m.address || ''), keyER = String(m.dealKey || '');
+    if(!addrER){ try { srcER.postMessage({ type:'asap-calc-rentresult', ok:false, error:'no_address' }, '*'); } catch(e){} return; }
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){
+          var msgER = res || { ok:false }; msgER.type = 'asap-calc-rentresult';
+          try { srcER.postMessage(msgER, '*'); } catch(e){}
+          try { var dER = resolveDealByKey(keyER); if(dER && res && res.ok){ dER.marketRent = String(res.rent); google.script.run.pipeline_saveMarketRent(dER.id, res.rent); } } catch(e){}
+        })
+        .withFailureHandler(function(err){ try { srcER.postMessage({ type:'asap-calc-rentresult', ok:false, error:(err&&err.message)?err.message:'error' }, '*'); } catch(e){} })
+        .pipeline_estimateRent(addrER);
+    } catch(e){ try { srcER.postMessage({ type:'asap-calc-rentresult', ok:false, error:'error' }, '*'); } catch(_){} }
+  } else if(m.type === 'asap-calc-borrower'){
+    var key8 = String(m.dealKey || ''), idx8 = -1;
+    for(var bi=0; bi<DEALS.length; bi++){ var db=DEALS[bi]; var dkb=(db.sourceUrl && String(db.sourceUrl).trim())?String(db.sourceUrl).trim():('id:'+(db.id||'')); if(dkb===key8){ idx8=bi; break; } }
+    if(idx8<0) return;
+    var d8 = DEALS[idx8];
+    var fields8 = { house:String(m.house||'').trim(), name:String(m.name||'').trim(), email:String(m.email||'').trim() };
+    try {
+      google.script.run
+        .withSuccessHandler(function(res){
+          if(res && res.ok){
+            d8.ready = res.ready; if(res.fullAddress) d8.addrShort = res.fullAddress;
+            d8.houseNum = fields8.house; d8.borrowerName = fields8.name; d8.borrowerEmail = fields8.email;
+            var hEl=document.getElementById('house-'+idx8); if(hEl) hEl.value=fields8.house;
+            var nEl=document.getElementById('name-'+idx8);  if(nEl) nEl.value=fields8.name;
+            var eEl=document.getElementById('email-'+idx8); if(eEl) eEl.value=fields8.email;
+            var n=(res.ready&&res.ready.house?1:0)+(res.ready&&res.ready.name?1:0)+(res.ready&&res.ready.email?1:0);
+            var cnt=document.getElementById('cnt-'+idx8); if(cnt) cnt.textContent=n+' of 3';
+          }
+        })
+        .withFailureHandler(function(){})
+        .pipeline_saveDealFields(d8.id, fields8);
+    } catch(e){}
+  }
+});
+function resolveDealByKey(key){
+  if(!key) return null;
+  for(var i=0;i<DEALS.length;i++){
+    var d=DEALS[i];
+    var dk = (d.sourceUrl && String(d.sourceUrl).trim()) ? String(d.sourceUrl).trim() : ('id:'+(d.id||''));
+    if(dk===key) return d;
+  }
+  return null;
+}
+</script>
