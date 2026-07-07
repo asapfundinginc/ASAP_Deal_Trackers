@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 from playwright.async_api import async_playwright
 
 # ── Config ────────────────────────────────────────────────────────────────────
-LISTING_URL   = "https://workingmoni.com/investors"
+LISTING_URL   = "https://workingmoni.com/investors?availableOnly=true"
 SEEN_FILE     = "seen_deals.json"
 SUPABASE_URL  = os.environ["SUPABASE_URL"]
 SUPABASE_SVC  = os.environ["SUPABASE_SVC"]
