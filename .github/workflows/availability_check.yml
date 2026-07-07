@@ -1,0 +1,39 @@
+# ASAP Pipeline — Morning Availability Check
+# Runs at 8 AM US Pacific Time (before the 9 AM scraper)
+# 8 AM PDT = 15:00 UTC
+# (Adjust to 16:00 UTC in winter: PST = UTC-8)
+
+name: Deal Availability Check
+
+on:
+  schedule:
+    - cron: "0 15 * * *"   # 8:00 AM Pacific (runs before the 9 AM scraper)
+  workflow_dispatch: {}     # manual trigger for testing
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30     # more time — checks every deal with no viewed_status
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Run availability check
+        env:
+          SUPABASE_URL:       ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SVC:       ${{ secrets.SUPABASE_SVC }}
+          GMAIL_ADDRESS:      ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL:    ${{ secrets.RECIPIENT_EMAIL }}
+        run: python availability_check.py
