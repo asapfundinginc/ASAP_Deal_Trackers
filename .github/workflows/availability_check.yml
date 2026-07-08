@@ -1,19 +1,19 @@
-# ASAP Pipeline — Morning Availability Check
-# Runs at 8 AM US Pacific Time (before the 9 AM scraper)
-# 8 AM PDT = 15:00 UTC
-# (Adjust to 16:00 UTC in winter: PST = UTC-8)
+# ASAP Pipeline — Deal Availability Check
+# Runs at 8:45 AM and 2:45 PM US Pacific Time — always 15 min before the scraper
+# PDT (UTC-7): 15:45 and 21:45 UTC
 
 name: Deal Availability Check
 
 on:
   schedule:
-    - cron: "0 15 * * *"   # 8:00 AM Pacific (runs before the 9 AM scraper)
-  workflow_dispatch: {}     # manual trigger for testing
+    - cron: "45 15 * * *"   # 8:45 AM Pacific (summer)
+    - cron: "45 21 * * *"   # 2:45 PM Pacific (summer)
+  workflow_dispatch: {}      # manual trigger
 
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30     # more time — checks every deal with no viewed_status
+    timeout-minutes: 30
 
     steps:
       - name: Check out repo
