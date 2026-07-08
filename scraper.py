@@ -8,7 +8,7 @@ Logic:
 3. Email a summary of what was added
 """
 
-import asyncio, json, os, re, smtplib, urllib.request, urllib.parse
+import asyncio, json, os, re, smtplib, urllib.request
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -44,7 +44,7 @@ def supabase_get_existing_ids(ids: list) -> set:
     if not ids:
         return set()
     id_list = ",".join(ids)
-    url = f"{SUPABASE_DEALS}?id=in.({urllib.parse.quote(id_list)})&select=id&limit=500"
+    url = f"{SUPABASE_DEALS}?id=in.({id_list})&select=id&limit=500"
     req = urllib.request.Request(url, headers=HEADERS_READ)
     try:
         with urllib.request.urlopen(req, timeout=15) as r:
@@ -55,17 +55,19 @@ def supabase_get_existing_ids(ids: list) -> set:
         return set()
 
 
-def supabase_upsert(record: dict) -> bool:
+def supabase_upsert(record: dict) -> str:
+    """Returns 'inserted' (new row), 'updated' (existing row), or 'error'."""
     data = json.dumps(record).encode()
     req  = urllib.request.Request(
         SUPABASE_DEALS, data=data, headers=HEADERS_WRITE, method="POST"
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as r:
-            return r.status in (200, 201, 204)
+            # Supabase returns 201 for new inserts, 200/204 for updates
+            return "inserted" if r.status == 201 else "updated"
     except Exception as e:
-        print(f"  Supabase insert failed: {e}")
-        return False
+        print(f"  Supabase upsert failed: {e}")
+        return "error"
 
 
 # ── Field parsers ─────────────────────────────────────────────────────────────
@@ -411,10 +413,14 @@ async def run_scrape():
             print(f"  Scraping: {url}")
             record = await scrape_deal(page, url)
             if record:
-                if supabase_upsert(record):
+                result = supabase_upsert(record)
+                if result == "inserted":
                     added.append(record)
                     seen_local.add(url)
-                    print(f"  Added: {record.get('assembled_address','')}")
+                    print(f"  Added (new): {record.get('assembled_address','')}")
+                elif result == "updated":
+                    seen_local.add(url)
+                    print(f"  Skipped (already in DB): {record.get('assembled_address','')}")
                 else:
                     errored.append(url)
             else:
