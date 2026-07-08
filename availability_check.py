@@ -28,13 +28,7 @@ SUPABASE_DEALS = f"{SUPABASE_URL}/rest/v1/deals"
 HEADERS_READ   = {"apikey": SUPABASE_SVC, "Authorization": f"Bearer {SUPABASE_SVC}"}
 HEADERS_WRITE  = {**HEADERS_READ, "Content-Type": "application/json", "Prefer": "return=minimal"}
 
-UNAVAILABLE_SIGNALS = [
-    "INVESTOR SELECTED",
-    "ON HOLD - INVESTOR SELECTED",
-    "FULLY FUNDED",
-    "FUNDING COMPLETE",
-    "CLOSED",
-]
+
 
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
@@ -79,6 +73,11 @@ async def is_deal_available(page, url: str):
       True  = still available
       False = no longer available
       None  = could not load (skip, retry next run)
+
+    Uses DOM selectors instead of full body text search to avoid false positives.
+    Only the two confirmed unavailability signals from WorkingMoni are checked:
+      1. "INVESTOR SELECTED!" button at the bottom of the page
+      2. "On Hold - Investor Selected" status badge on the deal image
     """
     try:
         resp = await page.goto(url, wait_until="domcontentloaded", timeout=25000)
@@ -89,12 +88,32 @@ async def is_deal_available(page, url: str):
         if resp and "/investors/" not in resp.url:
             return False, "Redirected away from deal page"
 
-        await asyncio.sleep(1.5)
-        body = (await page.inner_text("body")).upper()
+        # Wait for the page to fully render
+        await asyncio.sleep(2)
 
-        for signal in UNAVAILABLE_SIGNALS:
-            if signal in body:
-                return False, signal.title()
+        # Signal 1: "INVESTOR SELECTED!" button (appears at the bottom of unavailable deals)
+        # Use text matching on button elements only — not full body text
+        selected_btn = await page.query_selector(
+            "button:has-text('INVESTOR SELECTED'), "
+            "div[class*='button']:has-text('INVESTOR SELECTED'), "
+            "a:has-text('INVESTOR SELECTED')"
+        )
+        if selected_btn:
+            return False, "Investor Selected button found"
+
+        # Signal 2: "On Hold - Investor Selected" status badge on the deal image
+        on_hold = await page.query_selector(
+            "text='On Hold - Investor Selected'"
+        )
+        if on_hold:
+            return False, "On Hold — Investor Selected badge found"
+
+        # Signal 3: "Fully Funded" badge (if WorkingMoni uses this)
+        funded = await page.query_selector(
+            "text='Fully Funded', text='Funding Complete'"
+        )
+        if funded:
+            return False, "Fully Funded badge found"
 
         return True, "Still available"
 
