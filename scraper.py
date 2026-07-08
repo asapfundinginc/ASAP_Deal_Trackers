@@ -349,6 +349,19 @@ def send_new_deals_email(new_deals):
     _send_email(subject, html)
 
 
+def send_no_new_deals_email():
+    now  = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    html = f"""
+    <html><body style='font-family:sans-serif;color:#1a1a1a;padding:20px'>
+    <h2 style='color:#0e3f63'>ASAP Pipeline — Deal Scraper</h2>
+    <p style='color:#1e9e6a;font-weight:600'>✓ No new deals found this run.</p>
+    <p>All deals currently on WorkingMoni are already in your Supabase database.</p>
+    <p style='margin-top:16px;color:#888;font-size:12px'>
+      {now} · ASAP Funding Pipeline Automation
+    </p></body></html>"""
+    _send_email("ASAP Pipeline — No new deals this run", html)
+
+
 def _send_email(subject, html):
     msg            = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -440,6 +453,7 @@ async def run_scrape():
         send_new_deals_email(added)
         print(f"\nDone — {len(added)} added, {len(errored)} errors")
     else:
+        send_no_new_deals_email()
         print("\nDone — no new deals found")
 
 
