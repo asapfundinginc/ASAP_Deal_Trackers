@@ -4,13 +4,14 @@ Runs twice daily (8:45 AM and 2:45 PM Pacific) — always before the scraper.
 
 Logic:
 1. Query Supabase for deals where viewed_status IS NULL
-   (skips deals added in the last 3 hours to avoid false positives on new deals)
-2. Visit each deal's WorkingMoni URL with Playwright
-3. If "INVESTOR SELECTED" or similar signal found → set viewed_status = 'liked_na'
-4. Email a summary of what changed
+   Skips deals added in the last 3 hours (avoids checking brand-new deals)
+   Includes deals with no date_added (legacy/imported deals)
+2. Visit each deal URL with Playwright
+3. If unavailability signal found → set viewed_status = 'liked_na'
+4. Always sends an email summary regardless of results
 """
 
-import asyncio, json, os, re, smtplib, urllib.request
+import asyncio, json, os, smtplib, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -25,13 +26,8 @@ RECIPIENTS    = [e.strip() for e in os.environ["RECIPIENT_EMAIL"].split(",")]
 
 SUPABASE_DEALS = f"{SUPABASE_URL}/rest/v1/deals"
 HEADERS_READ   = {"apikey": SUPABASE_SVC, "Authorization": f"Bearer {SUPABASE_SVC}"}
-HEADERS_WRITE  = {
-    **HEADERS_READ,
-    "Content-Type": "application/json",
-    "Prefer":       "return=minimal",
-}
+HEADERS_WRITE  = {**HEADERS_READ, "Content-Type": "application/json", "Prefer": "return=minimal"}
 
-# Signals on the deal page that mean it is no longer available
 UNAVAILABLE_SIGNALS = [
     "INVESTOR SELECTED",
     "ON HOLD - INVESTOR SELECTED",
@@ -45,21 +41,23 @@ UNAVAILABLE_SIGNALS = [
 def get_deals_to_check() -> list:
     """
     Fetch deals where:
-    - viewed_status IS NULL (no status set yet)
-    - source_url IS NOT NULL (has a WorkingMoni URL to check)
-    - date_added is more than 3 hours ago (avoids false positives on newly added deals)
+    - viewed_status IS NULL
+    - source_url IS NOT NULL
+    - date_added IS NULL (legacy/imported deals with no date)
+      OR date_added is older than 3 hours (avoids false positives on brand-new deals)
     """
-    cutoff = (datetime.now(timezone.utc) - timedelta(hours=3)).isoformat()
-    params = (
-        "viewed_status=is.null"
-        "&source_url=not.is.null"
-        f"&date_added=lt.{cutoff}"
-        "&select=id,source_url,assembled_address,loan_type,state,loan_amount"
-        "&limit=500"
-    )
-    req = urllib.request.Request(
-        f"{SUPABASE_DEALS}?{params}", headers=HEADERS_READ
-    )
+    # Use Z suffix (no +00:00) so the timestamp is URL-safe without encoding
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=3)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    params = urllib.parse.urlencode({
+        "viewed_status": "is.null",
+        "source_url":    "not.is.null",
+        # OR: date_added is null (imported deals) OR date_added < cutoff (not brand-new)
+        "or":            f"(date_added.is.null,date_added.lt.{cutoff})",
+        "select":        "id,source_url,assembled_address,loan_type,state,loan_amount",
+        "limit":         "500",
+    })
+    req = urllib.request.Request(f"{SUPABASE_DEALS}?{params}", headers=HEADERS_READ)
     with urllib.request.urlopen(req, timeout=15) as r:
         return json.loads(r.read())
 
@@ -83,8 +81,8 @@ async def is_deal_available(page, url: str):
     """
     Returns (available, reason):
       True  = still available
-      False = no longer available (found a signal)
-      None  = could not load page (skip, try again next run)
+      False = no longer available
+      None  = could not load (skip, retry next run)
     """
     try:
         resp = await page.goto(url, wait_until="domcontentloaded", timeout=25000)
@@ -92,7 +90,6 @@ async def is_deal_available(page, url: str):
         if resp and resp.status == 404:
             return False, "Page 404"
 
-        # If redirected away from the deal page entirely
         if resp and "/investors/" not in resp.url:
             return False, "Redirected away from deal page"
 
@@ -109,21 +106,39 @@ async def is_deal_available(page, url: str):
         return None, f"Load error: {e}"
 
 
-# ── Email ─────────────────────────────────────────────────────────────────────
-def send_summary_email(checked: int, unavailable: list, skipped: list):
+# ── Email — always sent regardless of results ─────────────────────────────────
+def send_summary_email(checked: int, unavailable: list, skipped: list, error: str = ""):
     count = len(unavailable)
-    if count == 0:
-        subject = f"ASAP Pipeline — All {checked} deals still available"
+    now   = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+
+    if error:
+        subject = "ASAP Pipeline — Availability Check: ERROR"
+    elif checked == 0:
+        subject = "ASAP Pipeline — Availability Check: no deals to check"
+    elif count == 0:
+        subject = f"ASAP Pipeline — All {checked} deal(s) still available ✓"
     else:
         subject = f"ASAP Pipeline — {count} deal(s) no longer available"
 
+    # Status summary line
+    if error:
+        summary = f"<p style='color:#c0392b'>Error: {error}</p>"
+    elif checked == 0:
+        summary = (
+            "<p>No deals were found to check. This means either:<br>"
+            "• All deals in the database already have a <code>viewed_status</code> set, or<br>"
+            "• No deals with a WorkingMoni URL exist yet.</p>"
+        )
+    else:
+        summary = f"<p>Checked <b>{checked}</b> deal(s) with no viewed status.</p>"
+
+    # Unavailable deals table
     rows = ""
     for d in unavailable:
         deal_id  = d.get("id", "")
         loan_str = f"${d['loan_amount']:,.0f}" if d.get("loan_amount") else "—"
         addr     = d.get("assembled_address") or deal_id
-        id_tag   = (f"<br><span style='font-size:10px;color:#aaa'>ID: ...{deal_id[-6:]}</span>"
-                    if deal_id else "")
+        id_tag   = f"<br><span style='font-size:10px;color:#aaa'>ID: ...{deal_id[-6:]}</span>" if deal_id else ""
         rows += (
             f"<tr style='background:#fdecea'>"
             f"<td style='padding:6px 12px'>"
@@ -136,39 +151,35 @@ def send_summary_email(checked: int, unavailable: list, skipped: list):
             f"</tr>"
         )
 
-    skip_note = ""
-    if skipped:
-        skip_note = (
-            f"<p style='color:#888;font-size:12px'>"
-            f"{len(skipped)} deal(s) could not be loaded — will retry next run.</p>"
-        )
-
-    all_good = (
-        f"<p style='color:#1e9e6a'>All {checked} deals are still available.</p>"
-        if count == 0 else ""
-    )
-
     table = ""
     if count > 0:
         table = f"""
-        <table style='border-collapse:collapse;width:100%;font-size:14px'>
+        <table style='border-collapse:collapse;width:100%;font-size:14px;margin-top:12px'>
           <thead><tr style='background:#c0392b;color:#fff'>
             <th style='padding:8px 12px;text-align:left'>Address</th>
             <th style='padding:8px 12px;text-align:left'>Loan Type</th>
             <th style='padding:8px 12px;text-align:left'>Loan Amount</th>
             <th style='padding:8px 12px;text-align:left'>State</th>
             <th style='padding:8px 12px;text-align:left'>Status</th>
-          </tr></thead>
-          <tbody>{rows}</tbody>
+          </tr></thead><tbody>{rows}</tbody>
         </table>"""
+
+    all_good = (
+        f"<p style='color:#1e9e6a;font-weight:600'>✓ All {checked} deals are still available.</p>"
+        if checked > 0 and count == 0 else ""
+    )
+
+    skip_note = (
+        f"<p style='color:#888;font-size:12px'>⚠ {len(skipped)} deal(s) could not be loaded "
+        f"and will be retried next run.</p>"
+    ) if skipped else ""
 
     html = f"""
     <html><body style='font-family:sans-serif;color:#1a1a1a;padding:20px'>
     <h2 style='color:#0e3f63'>ASAP Pipeline — Availability Check</h2>
-    <p>Checked <b>{checked}</b> deal(s) with no viewed status.</p>
-    {all_good}{table}{skip_note}
+    {summary}{all_good}{table}{skip_note}
     <p style='margin-top:16px;color:#888;font-size:12px'>
-      {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} · ASAP Funding Pipeline Automation
+      {now} · ASAP Funding Pipeline Automation
     </p></body></html>"""
 
     msg            = MIMEMultipart("alternative")
@@ -189,11 +200,14 @@ async def run_check():
         deals = get_deals_to_check()
     except Exception as e:
         print(f"Failed to fetch deals: {e}")
+        send_summary_email(0, [], [], error=str(e))
         return
 
-    print(f"  {len(deals)} deal(s) to check (excludes deals added in last 3 hours)")
+    print(f"  {len(deals)} deal(s) to check")
+
     if not deals:
-        print("  Nothing to check.")
+        # Always send email even when nothing to check
+        send_summary_email(0, [], [])
         return
 
     unavailable, skipped = [], []
@@ -230,6 +244,7 @@ async def run_check():
 
         await browser.close()
 
+    # Always send email
     send_summary_email(len(deals), unavailable, skipped)
     print(
         f"\nDone — {len(unavailable)} marked unavailable, "
@@ -240,7 +255,6 @@ async def run_check():
 
 def main():
     asyncio.run(run_check())
-
 
 if __name__ == "__main__":
     main()
