@@ -5,14 +5,14 @@ Runs twice daily (8:45 AM and 2:45 PM Pacific) — always before the scraper.
 Logic:
 1. Query Supabase for deals where viewed_status IS NULL
    Skips deals added in the last 3 hours (avoids checking brand-new deals)
-   Includes deals with no date_added (legacy/imported deals)
+   Checks all deals with no viewed_status
 2. Visit each deal URL with Playwright
 3. If unavailability signal found → set viewed_status = 'liked_na'
 4. Always sends an email summary regardless of results
 """
 
 import asyncio, json, os, smtplib, urllib.request, urllib.parse
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from playwright.async_api import async_playwright
@@ -40,20 +40,16 @@ UNAVAILABLE_SIGNALS = [
 # ── Supabase helpers ──────────────────────────────────────────────────────────
 def get_deals_to_check() -> list:
     """
-    Fetch deals where:
-    - viewed_status IS NULL
-    - source_url IS NOT NULL
-    - date_added IS NULL (legacy/imported deals with no date)
-      OR date_added is older than 3 hours (avoids false positives on brand-new deals)
-    """
-    # Use Z suffix (no +00:00) so the timestamp is URL-safe without encoding
-    cutoff = (datetime.now(timezone.utc) - timedelta(hours=3)).strftime('%Y-%m-%dT%H:%M:%SZ')
+    Fetch ALL deals where:
+    - viewed_status IS NULL (no status set yet)
+    - source_url IS NOT NULL (has a WorkingMoni URL to check)
 
+    No date filter — scraper uses availableOnly=true so every added
+    deal was available at scrape time. No need to skip recent deals.
+    """
     params = urllib.parse.urlencode({
         "viewed_status": "is.null",
         "source_url":    "not.is.null",
-        # OR: date_added is null (imported deals) OR date_added < cutoff (not brand-new)
-        "or":            f"(date_added.is.null,date_added.lt.{cutoff})",
         "select":        "id,source_url,assembled_address,loan_type,state,loan_amount",
         "limit":         "500",
     })
