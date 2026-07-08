@@ -1,20 +1,20 @@
 # ASAP Pipeline — WorkingMoni Deal Scraper
-# Runs at 9 AM and 3 PM US Pacific Time
-# 9 AM PDT = 16:00 UTC | 3 PM PDT = 22:00 UTC
-# (Adjust +1 hr in winter: PST = UTC-8)
+# Runs at 9:00 AM and 3:00 PM US Pacific Time
+# PDT (UTC-7): 16:00 and 22:00 UTC
+# PST (UTC-8): 17:00 and 23:00 UTC
 
 name: WorkingMoni Deal Scraper
 
 on:
   schedule:
-    - cron: "0 16 * * *"   # 9:00 AM Pacific
-    - cron: "0 22 * * *"   # 3:00 PM Pacific
-  workflow_dispatch: {}     # manual trigger from Actions tab
+    - cron: "0 16 * * *"    # 9:00 AM Pacific (summer)
+    - cron: "0 22 * * *"    # 3:00 PM Pacific (summer)
+  workflow_dispatch: {}      # manual trigger
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Check out repo
@@ -44,5 +44,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add seen_deals.json
-          git diff --staged --quiet || git commit -m "chore: update seen deals list [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: update seen deals [skip ci]"
           git push
